@@ -1,0 +1,44 @@
+import React from 'react'
+import TiltedCard from '../components/UI/TiltedCard/TiltedCard'
+import DecryptedText from '../components/UI/DecryptedText/DecryptedText'
+
+
+const Main = () => {
+  // const [activeLink, setActiveLink] = useState
+  return (
+    <div className="container mx-auto px-4">
+      <div className="flex w-full flex-col items-center mt-30">
+        <TiltedCard
+          imageSrc="/log1o.png"
+          altText="LinkLab"
+          // captionText="LinkLab"
+          containerHeight="300px"
+          containerWidth="300px"
+          imageHeight="300px"
+          imageWidth="300px"
+          rotateAmplitude={12}
+          scaleOnHover={1.2}
+          showMobileWarning={false}
+          showTooltip={true}
+          displayOverlayContent={true}
+        />
+        <div className=' mt-1 font-bold text-4xl self-center'>
+          <DecryptedText
+            text="What is LinkLab?"
+            animateOn="view"
+            revealDirection="center"
+          />
+        </div>
+        <div className='w-3/5 text-center mt-5 text-2xl self-center'>
+          <DecryptedText
+            text="LinkLab is an open-source platform for working with links: shortening, analytics, QR codes, and custom domains in one place. It delivers the familiar set of capabilities you expect from a modern, industry-standard link shortener—focused on simplicity, speed, and an open codebase.?"
+            animateOn="view"
+            revealDirection="center"
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default Main
