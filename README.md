@@ -63,14 +63,20 @@ http://localhost:3000
 
 ## ☁️ Deployment
 
-Relinxr is fully optimized for Vercel.
-	1.	Push your code to GitHub
-	2.	Connect the repo on vercel.com
-	3.	Add MONGO_URI in Environment Variables
-	4.	Deploy 🎉
+Relinxr is fully optimized for **Vercel**.
+
+**Steps to deploy:**
+
+1. 🪣 Push your code to **GitHub**  
+2. 🔗 Connect the repository on [vercel.com](https://vercel.com)  
+3. ⚙️ Add the **MONGO_URI** variable in your Environment settings  
+4. 🚀 Click **Deploy** — and you're live!
 
 ---
 
-## ☁️ License
+## 📜 License
 
-This project is open-source under the MIT License.
+This project is open-source under the **MIT License**.  
+You are free to use, modify, and distribute it.
+
+---
