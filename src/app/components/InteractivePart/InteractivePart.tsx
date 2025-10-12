@@ -3,17 +3,17 @@ import { useState } from "react";
 
 export default function InteractivePart() {
   const [url, setUrl] = useState("");
-  const [shortUrl, setShortUrl] = useState<string | null>(null); // 👈 храним полный URL
-  const [err, setErr] = useState<string | null>(null);
+  const [shortUrl, setShortUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setErr(null);
+    setError(null);
     setShortUrl(null);
 
     const value = url.trim();
-    if (!value) return setErr("Введите URL");
+    if (!value) return setError("Please enter a valid URL.");
 
     setLoading(true);
     try {
@@ -32,19 +32,20 @@ export default function InteractivePart() {
       }
 
       if (!data || typeof data !== "object" || !("ok" in data)) {
-        throw new Error("Некорректный ответ сервера");
+        throw new Error("Invalid server response.");
       }
+
       const parsed = data as { ok: boolean; shortUrl?: string; error?: string };
 
       if (!res.ok || !parsed.ok || !parsed.shortUrl) {
-        throw new Error(parsed.error || `HTTP ${res.status}`);
+        throw new Error(parsed.error || `Request failed with status ${res.status}`);
       }
 
-      setShortUrl(parsed.shortUrl); // 👈 готовый полный URL с правильным доменом
+      setShortUrl(parsed.shortUrl);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      setErr(msg || "Ошибка");
-      console.error("create link error:", err);
+      setError(msg || "Something went wrong.");
+      console.error("Create link error:", err);
     } finally {
       setLoading(false);
     }
@@ -58,29 +59,37 @@ export default function InteractivePart() {
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://yourlonglink.com"
-          className="w-full rounded-2xl border p-3 h-[48px] outline-none"
+          className="w-full rounded-2xl border p-3 h-[48px] outline-none transition
+                     focus:ring-2 focus:ring-violet-500/50 focus:ring-offset-1"
         />
         <button
           type="submit"
           disabled={loading || !url.trim()}
           className="w-full rounded-2xl border-2 px-5 py-3 font-semibold transition
-                     hover:bg-black hover:text-white disabled:opacity-60"
+                     hover:bg-black hover:text-white hover:shadow-lg
+                     disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {loading ? "Creating..." : "Get better link now!"}
         </button>
       </form>
 
-      {err && <p className="mt-3 text-sm text-red-600">{err}</p>}
+      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
       {shortUrl && (
-        <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border p-3">
-          <a href={shortUrl} target="_blank" rel="noreferrer" className="truncate text-blue-600 underline">
+        <div className="mt-5 flex items-center justify-between gap-3 rounded-2xl border p-3 shadow-sm">
+          <a
+            href={shortUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="truncate text-violet-600 hover:text-violet-800 transition font-medium lowercase"
+          >
             {shortUrl}
           </a>
           <button
             type="button"
             onClick={() => navigator.clipboard.writeText(shortUrl)}
-            className="rounded-xl border px-3 py-2 text-sm hover:bg-black hover:text-white transition"
+            className="rounded-xl border px-3 py-2 text-sm transition
+                       hover:bg-black hover:text-white"
           >
             Copy
           </button>
