@@ -13,7 +13,7 @@ const Header = () => {
               items={[
                   { label: 'Converse', href: '/' },
                   { label: 'About', href: '/about' },
-                  { label: 'Sign In', href: '/signin' }
+                  { label: 'Sign Up', href: '/signup' }
               ]}
               activeHref="/"
               className="custom-nav"

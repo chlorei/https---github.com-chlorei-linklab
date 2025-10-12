@@ -10,8 +10,7 @@ const InteractivePart = () => {
               type="text"
               placeholder="htttps:/yourlonglink.com/blahblahblah"
               onChange={(e) => setActiveLink(e.target.value)}
-              className="w-full rounded-2xl border p-3 h-[48px] outline-none
-                         focus:ring-2 focus:ring-black/60 focus:border-black"
+              className="w-full rounded-2xl border p-3 h-[48px"
             />
 
             <button

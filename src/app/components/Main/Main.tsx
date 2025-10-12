@@ -13,7 +13,7 @@ const Main = () => {
           pauseDuration={1500}
           showCursor
           cursorCharacter="|"
-          className="text-4xl  font-bold text-black text-center"
+          className="text-4xl font-bold text-black text-center"
         />
 
         <div className="mt-20 w-full max-w-2xl self-center rounded-2xl border-2 p-10">
