@@ -170,3 +170,9 @@
   padding-inline: var(--container-padding);
   max-width: none;
 }
+
+@supports (scrollbar-gutter: stable) {
+  html {
+    scrollbar-gutter: stable both-edges;
+  }
+}
