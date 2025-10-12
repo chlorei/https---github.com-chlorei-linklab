@@ -33,7 +33,6 @@ const Main = () => {
               />
             </div>
 
-            {/* на мобиле кнопка на всю ширину, дальше уже сужаем */}
             <button
               type="submit"
               className="w-full sm:w-2/3 lg:w-1/2 self-center rounded-2xl border px-5 py-3 font-semibold

@@ -6,7 +6,6 @@ export default function Home() {
  <main className="min-h-screen flex justify-center mt-40">
   <div className="container mx-auto  px-4 ">.
       <Main/>
-  
   </div>
 </main>
     
