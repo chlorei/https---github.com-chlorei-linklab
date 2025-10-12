@@ -1,7 +1,6 @@
 import React from 'react'
 // import logo from '../../../public/logo.png';
 import PillNav from "../UI/PillNav/PillNav"
-import Image from 'next/image'
 
 const Header = () => {
   return (

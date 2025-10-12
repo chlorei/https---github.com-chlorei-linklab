@@ -1,32 +1,47 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Link from "@/db/models/Link";
-import { zCreateLink } from "@/features/links/validators";
-import { normalizeUrl, generateShortId } from "@/features/links/utils";
 
 export const runtime = "nodejs";
 
+// POST — создать новую короткую ссылку
 export async function POST(req: Request) {
   try {
     await dbConnect();
-    const body = await req.json();
-    const data = zCreateLink.parse(body);
+    const { originalUrl } = await req.json();
 
-    const doc = await Link.create({
-      originalUrl: normalizeUrl(data.originalUrl),
-      shortId: data.shortId ?? generateShortId(),
-      domain: data.domain ?? null,
-      title: data.title ?? null,
+    if (!originalUrl) {
+      return NextResponse.json(
+        { ok: false, error: "originalUrl is required" },
+        { status: 400 }
+      );
+    }
+
+    // генерим короткий ID
+    const shortId = Math.random().toString(36).slice(2, 8);
+
+    // создаём запись
+    const link = await Link.create({
+      originalUrl,
+      shortId,
+      isActive: true,
+      clicksCount: 0,
     });
-    return NextResponse.json({ ok: true, link: doc }, { status: 201 });
-  } catch (e: any) {
-    const status = e?.code === 11000 ? 409 : 400;
-    return NextResponse.json({ ok: false, error: e.message ?? String(e) }, { status });
+
+    return NextResponse.json({ ok: true, link }, { status: 201 });
+  } catch (err) {
+    // ✅ объявляем тип явно, без any
+    const e = err as { message?: string; code?: number };
+    const msg = e.message ?? "Unknown error";
+    const status = e.code === 11000 ? 409 : 500;
+
+    return NextResponse.json({ ok: false, error: msg }, { status });
   }
 }
 
+// GET — получить список всех ссылок
 export async function GET() {
   await dbConnect();
-  const links = await Link.find().sort({ createdAt: -1 }).limit(100).lean();
+  const links = await Link.find().sort({ createdAt: -1 }).lean();
   return NextResponse.json({ ok: true, links });
 }
