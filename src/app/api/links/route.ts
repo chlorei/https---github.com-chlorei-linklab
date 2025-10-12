@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
 import dbConnect from "@/lib/dbConnect";
 import Link from "@/db/models/Link";
 
@@ -8,10 +9,8 @@ export async function POST(req: Request) {
   try {
     await dbConnect();
 
-    // обязательно парсим JSON и проваливаемся с 400, если поле не пришло
     const body = await req.json().catch(() => null);
     const originalUrl = body?.originalUrl?.toString().trim();
-
     if (!originalUrl) {
       return NextResponse.json(
         { ok: false, error: "originalUrl is required" },
@@ -20,13 +19,29 @@ export async function POST(req: Request) {
     }
 
     const shortId = Math.random().toString(36).slice(2, 8);
-    const link = await Link.create({ originalUrl, shortId, isActive: true, clicksCount: 0 });
+    const link = await Link.create({
+      originalUrl,
+      shortId,
+      isActive: true,
+      clicksCount: 0,
+    });
 
-    return NextResponse.json({ ok: true, link }, { status: 201 });
+    // ✅ headers() теперь асинхронный
+    const h = await headers();
+    const proto = h.get("x-forwarded-proto") ?? "http";
+    const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
+    const origin = `${proto}://${host}`;
+
+    const shortUrl = `${origin}/${link.shortId}`;
+
+    return NextResponse.json({ ok: true, link, shortUrl }, { status: 201 });
   } catch (err) {
     const e = err as { message?: string; code?: number };
     const status = e?.code === 11000 ? 409 : 500;
-    return NextResponse.json({ ok: false, error: e?.message ?? "Internal error" }, { status });
+    return NextResponse.json(
+      { ok: false, error: e?.message ?? "Internal error" },
+      { status }
+    );
   }
 }
 

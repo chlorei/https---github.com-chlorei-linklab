@@ -3,14 +3,14 @@ import { useState } from "react";
 
 export default function InteractivePart() {
   const [url, setUrl] = useState("");
-  const [shortId, setShortId] = useState<string | null>(null);
+  const [shortUrl, setShortUrl] = useState<string | null>(null); // 👈 храним полный URL
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErr(null);
-    setShortId(null);
+    setShortUrl(null);
 
     const value = url.trim();
     if (!value) return setErr("Введите URL");
@@ -19,38 +19,28 @@ export default function InteractivePart() {
     try {
       const res = await fetch("/api/links", {
         method: "POST",
-        headers: { "Content-Type": "application/json" }, // важно!
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ originalUrl: value }),
       });
 
-      // пробуем распарсить:
-      // пробуем распарсить:
       let data: unknown;
       try {
         data = await res.json();
       } catch {
-        // если сервер вернул не-JSON, покажем текст
         const text = await res.text();
         throw new Error(`Bad JSON (${res.status}): ${text}`);
       }
 
-      // теперь сужаем тип — проверяем, что это объект
-      if (
-        !data ||
-        typeof data !== "object" ||
-        !("ok" in data)
-      ) {
+      if (!data || typeof data !== "object" || !("ok" in data)) {
         throw new Error("Некорректный ответ сервера");
       }
+      const parsed = data as { ok: boolean; shortUrl?: string; error?: string };
 
-      // приводим к ожидаемому виду
-      const parsed = data as { ok: boolean; link?: { shortId?: string }; error?: string };
-
-      if (!res.ok || !parsed.ok || !parsed.link?.shortId) {
+      if (!res.ok || !parsed.ok || !parsed.shortUrl) {
         throw new Error(parsed.error || `HTTP ${res.status}`);
       }
 
-      setShortId(parsed.link.shortId);;
+      setShortUrl(parsed.shortUrl); // 👈 готовый полный URL с правильным доменом
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setErr(msg || "Ошибка");
@@ -59,9 +49,6 @@ export default function InteractivePart() {
       setLoading(false);
     }
   }
-
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const shortUrl = shortId ? `${origin}/${shortId}` : "";
 
   return (
     <div className="w-full max-w-2xl">
@@ -85,7 +72,7 @@ export default function InteractivePart() {
 
       {err && <p className="mt-3 text-sm text-red-600">{err}</p>}
 
-      {shortId && (
+      {shortUrl && (
         <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border p-3">
           <a href={shortUrl} target="_blank" rel="noreferrer" className="truncate text-blue-600 underline">
             {shortUrl}
