@@ -3,7 +3,7 @@ import React from 'react'
 
 const Main = () => {
   return (
-    <div className="container mx-auto px-4">
+    <div className="container mx-auto px-4 text-primary-text">
       <div className="flex min-h-screen w-full flex-col items-center justify-center py-8 sm:py-12">
         <div className="w-full max-w-xl rounded-2xl border p-6 sm:p-8">
           <h2 className="text-center font-bold text-2xl sm:text-3xl">Sign Up</h2>
@@ -66,19 +66,19 @@ const Main = () => {
             <button
               type="submit"
               className="w-full sm:w-2/3 lg:w-1/2 self-center rounded-2xl border px-5 py-3 font-semibold
-                         transition hover:bg-black hover:text-white hover:shadow-lg hover:-translate-y-0.5
+                         transition hover:bg-hover-button-bg hover:text-hover-button-text hover:shadow-lg hover:-translate-y-0.5
                          active:translate-y-0 active:shadow-md
                          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/60 focus-visible:ring-offset-2"
             >
               Sign up
             </button>
 
-            <Link
-              href="/signin"
-              className="self-center text-sm text-neutral-600 underline underline-offset-4 hover:text-black hover:no-underline"
-            >
-              or sign in here
-            </Link>
+            <p className="text-center text-sm text-muted-foreground">
+              Already have an account?{' '}
+              <Link href="/signin" className="underline underline-offset-4 hover:no-underline">
+                Sign in
+              </Link>
+            </p>
           </form>
         </div>
       </div>

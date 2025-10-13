@@ -26,7 +26,6 @@ export async function POST(req: Request) {
       clicksCount: 0,
     });
 
-    // ✅ headers() теперь асинхронный
     const h = await headers();
     const proto = h.get("x-forwarded-proto") ?? "http";
     const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";

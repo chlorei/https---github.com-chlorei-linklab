@@ -1,22 +1,25 @@
+"use client"
+
 import TiltedCard from '../components/UI/TiltedCard/TiltedCard'
 import DecryptedText from '../components/UI/DecryptedText/DecryptedText'
+import { useThemeCtx } from '@/app/providers/ThemeProvider';
 
 
-const Main = () => {
-  // const [activeLink, setActiveLink] = useState
+const About = () => {
+  const { theme } = useThemeCtx(); 
+  const logoSrc = theme === "dark" ? "/fulllogo-white.png" : "/fulllogo-black.png";
   return (
-    <div className="container mx-auto px-4">
+    <div className="text-primary-text container mx-auto px-4">
       <div className="flex w-full flex-col items-center mt-30">
         <TiltedCard
-          imageSrc="/logo1.png"
+          imageSrc={logoSrc}
           altText="Relinxr"
-          // captionText="LinkLab"
           containerHeight="300px"
           containerWidth="300px"
           imageHeight="300px"
           imageWidth="300px"
-          rotateAmplitude={12}
-          scaleOnHover={1.2}
+          rotateAmplitude={30}
+          scaleOnHover={1.3}
           showMobileWarning={false}
           showTooltip={false}
           displayOverlayContent={true}
@@ -40,4 +43,4 @@ const Main = () => {
   )
 }
 
-export default Main
+export default About

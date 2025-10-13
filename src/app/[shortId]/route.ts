@@ -9,9 +9,9 @@ export const dynamic = "force-dynamic";
 
 export async function GET(
   request: NextRequest,
-  context: { params: Promise<{ shortId: string }> } // 👈 params — Promise
+  context: { params: Promise<{ shortId: string }> } 
 ): Promise<Response> {
-  const { shortId } = await context.params; // 👈 обязательно await
+  const { shortId } = await context.params; 
   await dbConnect();
 
   const link = await Link.findOne({ shortId, isActive: true });
@@ -22,7 +22,6 @@ export async function GET(
   const ip = request.headers.get("x-forwarded-for") ?? undefined;
   const ua = request.headers.get("user-agent") ?? undefined;
 
-  // fire-and-forget, чтобы не блокировать редирект
   void Promise.allSettled([
     Visit.create({ linkId: link._id, ip, userAgent: ua }),
     Link.updateOne({ _id: link._id }, { $inc: { clicksCount: 1 } }),

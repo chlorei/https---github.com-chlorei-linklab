@@ -59,14 +59,13 @@ export default function InteractivePart() {
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://yourlonglink.com"
-          className="w-full rounded-2xl border p-3 h-[48px] outline-none transition
-                     focus:ring-2 focus:ring-violet-500/50 focus:ring-offset-1"
+          className="w-full text-primary-text rounded-2xl border p-3 h-[48px] outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
         />
         <button
           type="submit"
           disabled={loading || !url.trim()}
-          className="w-full rounded-2xl border-2 px-5 py-3 font-semibold transition
-                     hover:bg-black hover:text-white hover:shadow-lg
+          className="w-full text-primary-text rounded-2xl border-2 px-5 py-3 font-semibold transition
+                     hover:bg-hover-button-bg hover:text-hover-button-text hover:shadow-lg
                      disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {loading ? "Creating..." : "Get better link now!"}

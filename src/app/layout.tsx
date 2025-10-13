@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
 import Header from "@/app/components/Header/Header";
+import { ThemeToggle } from "./components/ThemeToggle/ThemeToggle";
+import { ThemeProvider } from "./providers/ThemeProvider";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -61,8 +63,29 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${montserrat.variable} antialiased`}>
-        {children}
-        <Header/>
+        
+        <ThemeProvider>
+          <Header />
+          {children}
+          <div
+          className="
+            absolute
+            left-1/2 -translate-x-1/2
+            top-[calc(env(safe-area-inset-top)+12px)]
+            mt-1
+            md:left-4 md:top-4 md:translate-x-0
+            w-auto h-auto z-[9999] 
+          "
+          >
+          <ThemeToggle
+            className="
+              rounded-full border border-border bg-card text-foreground
+              px-4 py-2 text-sm shadow-md
+              transition hover:shadow-lg
+            "
+          />
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   );
