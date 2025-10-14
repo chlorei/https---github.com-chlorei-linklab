@@ -8,6 +8,8 @@ const linkSchema = new Schema(
     domain: { type: String, default: null, index: true }, // custom domain support
     title: { type: String, default: null },
     isActive: { type: Boolean, default: true },
+    userId: { type: Schema.Types.ObjectId, ref: "User" }, // опционально
+    anonId: { type: String },     
   },
   { timestamps: true }
 );

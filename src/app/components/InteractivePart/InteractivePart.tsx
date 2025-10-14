@@ -80,15 +80,15 @@ export default function InteractivePart() {
             href={shortUrl}
             target="_blank"
             rel="noreferrer"
-            className="truncate text-violet-600 hover:text-violet-800 transition font-medium lowercase"
+            className="truncate text-gray-500 hover:text-gray-300 transition font-medium lowercase"
           >
             {shortUrl}
           </a>
           <button
             type="button"
             onClick={() => navigator.clipboard.writeText(shortUrl)}
-            className="rounded-xl border px-3 py-2 text-sm transition
-                       hover:bg-black hover:text-white"
+            className="rounded-xl border px-3 py-2 text-sm transition text-primary-text
+                       hover:bg-hover-button-bg hover:text-hover-button-text"
           >
             Copy
           </button>

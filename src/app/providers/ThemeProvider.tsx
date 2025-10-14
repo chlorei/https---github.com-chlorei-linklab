@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 type Theme = "light" | "dark";
 type Ctx = { theme: Theme; setTheme: (t: Theme) => void; toggle: () => void };
@@ -9,7 +9,6 @@ const ThemeCtx = createContext<Ctx | null>(null);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("light");
 
-  // инициализация из localStorage / system
   useEffect(() => {
     const saved = localStorage.getItem("theme") as Theme | null;
     const sysDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -19,7 +18,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   function applyTheme(t: Theme) {
     const root = document.documentElement;
-    // анти-мигание (опционально)
     root.classList.add("theming");
     root.classList.toggle("dark", t === "dark");
     localStorage.setItem("theme", t);
@@ -27,10 +25,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     requestAnimationFrame(() => root.classList.remove("theming"));
   }
 
-  const setTheme = (t: Theme) => applyTheme(t);
-  const toggle = () => setTheme(theme === "dark" ? "light" : "dark");
+  const setTheme = useCallback((t: Theme) => applyTheme(t), []);
+  const toggle = useCallback(() => setTheme(theme === "dark" ? "light" : "dark"), [theme, setTheme]);
 
-  const value = useMemo(() => ({ theme, setTheme, toggle }), [theme]);
+  const value = useMemo(() => ({ theme, setTheme, toggle }), [theme, setTheme, toggle]);
 
   return <ThemeCtx.Provider value={value}>{children}</ThemeCtx.Provider>;
 }
