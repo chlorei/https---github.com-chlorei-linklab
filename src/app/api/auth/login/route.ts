@@ -1,62 +1,4 @@
-// import * as AuthController from "@/lib/controllers/auth.controller"
-// import bcrypt from "bcryptjs";
-// import { NextResponse } from "next/server";
-// import jwt from "jsonwebtoken";
 
-
-// export const runtime = "nodejs";
-
-// const generateAccessToken = (user: { id: string; email: string }) => {
-//     const payload = { id: user.id, email: user.email };
-//     const secret = process.env.JWT_SECRET;
-    
-//     return jwt.sign(payload, secret!, { expiresIn: "70h" });
-// };
-
-// export async function POST(req: Request) {
-//   try {
-
-//     const body = await req.json().catch(() => null);
-
-//     if (!body || !body.email || !body.password) {
-//         return NextResponse.json(
-//             { message: "Invalid request: missing fields" },
-//             { status: 400 }
-//         );
-//     }
-//     const userResult = await AuthController.findOneByEmail(body.email);
-//     const user = Array.isArray(userResult) ? userResult[0] : userResult;
-//     if (!user) {
-//         return NextResponse.json(
-//             { ok: false, message: "User with this email does not exist" },
-//             { status: 404 }
-//         );
-//     }
-    
-//     console.log("user", user);
-//     const validPassword = bcrypt.compareSync(body.password, user.password);
-
-//     if (!validPassword) {
-//         console.log("Invalid password");
-//         return NextResponse.json(
-//             { ok: false, message: "Invalid password" },
-//             { status: 401 }
-//         );
-//     }
-    
-//     const token = generateAccessToken({ id: String(user._id), email: user.email });
-//     console.log("token", token);
-//     return NextResponse.json({ ok: true, token, user: { id: user._id, email: user.email, firstName: user.firstName, lastName: user.lastName } }, { status: 200 });
-    
-// } catch (err) {
-//     const e = err as { message?: string; code?: number };
-//     const status = e?.code === 11000 ? 409 : 500;
-//     return NextResponse.json(
-//       { ok: false, error: e?.message ?? "Internal error" },
-//       { status }
-//     );
-//   }
-// }
 
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
@@ -65,7 +7,7 @@ import bcrypt from "bcryptjs";
 
 export const runtime = "nodejs";
 
-const generateAccessToken = (user: { id: string; email: string }) => {
+const generateAccessToken = (user: { id: string; email: string, name: string}) => {
   const secret = process.env.JWT_SECRET!;
   return jwt.sign(user, secret, { expiresIn: "70h" });
 };
@@ -89,14 +31,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "Invalid password" }, { status: 401 });
     }
 
-    const token = generateAccessToken({ id: String(user._id), email: user.email });
+    const token = generateAccessToken({ id: String(user._id), email: user.email, name: user.name ?? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() });
 
     const res = NextResponse.json({
       ok: true,
       user: { id: user._id, email: user.email, firstName: user.firstName, lastName: user.lastName },
     });
 
-    // HttpOnly cookie с токеном (middleware будет читать из cookie)
     res.cookies.set("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

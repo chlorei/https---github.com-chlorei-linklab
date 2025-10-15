@@ -1,11 +1,17 @@
 "use client";
-
 import React, { useEffect, useState } from 'react'
 import PillNav from "../UI/PillNav/PillNav"
 import { useThemeCtx } from '@/app/providers/ThemeProvider';
 
 const Header = () => {
-  
+  type Session = {
+    id: string;
+    name: string;
+    email: string;
+  };
+
+  const [session, setSession] = useState<Session | null>(null);
+
   const { theme } = useThemeCtx(); 
   const logoSrc = theme === "dark" ? "/logo-black.png" : "/logo-white.png";
   const [colors, setColors] = useState({
@@ -24,6 +30,19 @@ const Header = () => {
   };
 
   useEffect(() => {
+  (async () => {
+    try {
+      const res = await fetch("/api/auth/me", { cache: "no-store" });
+      const data = await res.json();
+      if (res.ok && data.ok) setSession(data.user);
+      else setSession(null);
+    } catch {
+      setSession(null);
+    }
+  })();
+}, []);
+
+  useEffect(() => {
     setColors(readVars());
   }, [theme]);
 
@@ -33,9 +52,12 @@ const Header = () => {
               logoAlt="Company Logo"
               items={[
                   { label: 'Converse', href: '/' },
+                  session ? {label: "Dashboard", href: '/dashboard'} : null,
+                  session ? {label: "Links", href: '/links'} : null,
+                  session ? {label: "Analytics", href: '/analytics'} : null,
                   { label: 'About', href: '/about' },
-                  { label: 'Sign Up', href: '/signup' }
-              ]}
+                  session ? { label: 'Account', href: '/account' } : { label: 'Sign Up', href: '/signup' }
+              ].filter((item): item is { label: string; href: string } => item !== null)}
               activeHref="/"
               className="custom-nav"
               ease="power2.easeOut"
@@ -50,3 +72,4 @@ const Header = () => {
 }
 
 export default Header
+

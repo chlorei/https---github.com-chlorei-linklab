@@ -30,7 +30,7 @@ const Main = () => {
       throw new Error(data?.error || `Request failed (${res.status})`);
     }
 
-    window.location.href = "/dashboard";
+    window.location.href = "/";
   } catch (err: unknown) {
     if (err instanceof Error) {
       alert(err.message || "Something went wrong.");

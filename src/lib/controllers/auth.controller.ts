@@ -36,8 +36,3 @@ export async function findOneByEmail(email : string){
   return Repo.findOneByEmail(email);
 }
 
-
-// export async function login(email: string, password: string){
-
-
-// }
