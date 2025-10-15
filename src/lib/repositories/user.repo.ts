@@ -17,3 +17,4 @@ export async function findOneByEmail(email: string) {
   await dbConnect();
   return User.findOne({ email }).lean(); 
 }
+

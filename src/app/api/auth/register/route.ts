@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import * as UserController from "@/lib/controllers/user.controller"
+import * as AuthController from "@/lib/controllers/auth.controller"
 
 export const runtime = "nodejs";
 
@@ -16,14 +16,14 @@ export async function POST(req: Request) {
         
 }
 
- const existingUser = await UserController.findOneByEmail(body.email);
+ const existingUser = await AuthController.findOneByEmail(body.email);
     if (existingUser) {
         return NextResponse.json(
             { ok: false, message: "User with this email already exists" },
             { status: 409 }
         );
     }
-    const result = await UserController.create(body)
+    const result = await AuthController.create(body);
 
 
     return NextResponse.json(result, { status: 201 });
@@ -38,6 +38,6 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
-  const users = await UserController.findAll();
+  const users = await AuthController.findAll();
   return NextResponse.json({ ok: true, users });
 }

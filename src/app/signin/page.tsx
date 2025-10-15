@@ -5,6 +5,42 @@ import React from 'react'
 
 const Main = () => {
 
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  const form = e.currentTarget;
+  const fd = new FormData(form);
+  const email = (fd.get("email") as string)?.trim().toLowerCase();
+  const password = (fd.get("password") as string) ?? "";
+
+  try {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    let data: { ok?: boolean; error?: string };
+    try { data = await res.json(); }
+    catch {
+      const txt = await res.text();
+      throw new Error(`Bad JSON (${res.status}): ${txt}`);
+    }
+
+    if (!res.ok || !data?.ok) {
+      throw new Error(data?.error || `Request failed (${res.status})`);
+    }
+
+    window.location.href = "/dashboard";
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      alert(err.message || "Something went wrong.");
+      console.error("Login error:", err);
+    } else {
+      alert("Something went wrong.");
+      console.error("Login error:", err);
+    }
+  }
+};
 
   return (
     <div className="container mx-auto px-4 text-primary-text">
@@ -16,9 +52,10 @@ const Main = () => {
             Sign in
           </h2>
 
-          <form className="mt-6 flex flex-col gap-5 text-foreground" action="">
+          <form className="mt-6 flex flex-col gap-5 text-foreground" action="" onSubmit={handleSubmit}>
             <div>
               <input
+                name="email"
                 type="email"
                 placeholder="Email"
                 autoComplete="email"
@@ -29,6 +66,7 @@ const Main = () => {
 
             <div>
               <input
+                name="password"
                 type="password"
                 placeholder="Password"
                 autoComplete="password"
@@ -38,7 +76,6 @@ const Main = () => {
             </div>
 
             <button
-              // onClick={() => btn.setAttribute("disabled", "true");}
               type="submit"
               className="w-full sm:w-2/3 lg:w-1/2 self-center rounded-2xl border px-5 py-3 font-semibold
                          transition hover:bg-hover-button-bg hover:text-hover-button-text hover:shadow-lg hover:-translate-y-0.5
