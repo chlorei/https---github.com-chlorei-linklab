@@ -1,15 +1,14 @@
-import { Schema, model, models, Types } from "mongoose";
+import  { Schema, models, model } from "mongoose";
 
-const userSchema = new Schema(
+const UserSchema = new Schema(
   {
-    linkId: { type: Types.ObjectId, ref: "Link", required: true, index: true },
-    ts: { type: Date, default: Date.now, index: true },
-    ip: String,
-    userAgent: String,
+    firstName: { type: String, required: true },
+    lastName:  { type: String, required: true },
+    email:     { type: String, required: true, unique: true },
+    password:  { type: String, required: true },
   },
-  { timestamps: false }
+  { timestamps: true }
 );
 
-userSchema.index({ linkId: 1, ts: -1 });
-
-export default models.User || model("User", userSchema);
+const User = models.User || model("User", UserSchema);
+export default User;

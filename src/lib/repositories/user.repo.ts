@@ -1,12 +1,19 @@
 import dbConnect from "@/lib/db/dbConnect";
-import Link from "@/lib/db/models/Link";
+import User from "../db/models/User";
 
-export async function addOne(doc: { originalUrl: string; shortId: string }) {
+export async function addOne(firstName: string, lastName: string, email: string, password: string ) {
   await dbConnect();
-  return Link.create({ ...doc, isActive: true, clicksCount: 0 });
+  return User.create({ firstName, lastName, email, password });
 }
 
 export async function findAll() {
   await dbConnect();
-  return Link.find().sort({ createdAt: -1 }).lean();
+  return User.find().sort({ createdAt: -1 }).lean();
+}
+
+
+
+export async function findOneByEmail(email: string) {
+  await dbConnect();
+  return User.findOne({ email }).lean(); 
 }

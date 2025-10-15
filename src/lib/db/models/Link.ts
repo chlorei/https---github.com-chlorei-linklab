@@ -2,13 +2,12 @@ import { Schema, model, models } from 'mongoose';
 
 const linkSchema = new Schema(
   {
-    // userId: { type: Types.ObjectId, ref: 'User', index: true },
     shortId: { type: String, unique: true, index: true, required: true },
     originalUrl: { type: String, required: true },
-    domain: { type: String, default: null, index: true }, // custom domain support
+    domain: { type: String, default: null, index: true },
     title: { type: String, default: null },
     isActive: { type: Boolean, default: true },
-    userId: { type: Schema.Types.ObjectId, ref: "User" }, // опционально
+    userId: { type: Schema.Types.ObjectId, ref: "User" }, 
     anonId: { type: String },     
   },
   { timestamps: true }

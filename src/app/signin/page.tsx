@@ -1,7 +1,11 @@
+"use client";
+
 import Link from 'next/link'
 import React from 'react'
 
 const Main = () => {
+
+
   return (
     <div className="container mx-auto px-4 text-primary-text">
       {/* центрируем по высоте и ширине */}
@@ -34,6 +38,7 @@ const Main = () => {
             </div>
 
             <button
+              // onClick={() => btn.setAttribute("disabled", "true");}
               type="submit"
               className="w-full sm:w-2/3 lg:w-1/2 self-center rounded-2xl border px-5 py-3 font-semibold
                          transition hover:bg-hover-button-bg hover:text-hover-button-text hover:shadow-lg hover:-translate-y-0.5
