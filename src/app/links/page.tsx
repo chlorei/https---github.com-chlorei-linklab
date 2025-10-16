@@ -45,11 +45,9 @@ const Links = () => {
             <h3 className='font-bold w-full'>All Links</h3>
             <p className='text-sm w-full text-gray-500 mt-2'>Your most recently shortened links</p>
             <div className="mt-5">
-              <RecentLinks title={'Nigga'} url={'Bish'} clicks={123} date={'3 days ago'}/>
+              <RecentLinks title={'Biba'} url={'Bish'} clicks={123} date={'3 days ago'}/>
               <RecentLinks title={'Baba'} url={'asd'} clicks={22} date={'a week ago'}/>
-              <RecentLinks title={'Nigga'} url={'Bish'} clicks={123} date={'3 days ago'}/>
-              <RecentLinks title={'Baba'} url={'asd'} clicks={22} date={'a week ago'}/>
-              <RecentLinks title={'Nigga'} url={'Bish'} clicks={123} date={'3 days ago'}/>
+              <RecentLinks title={'Boba'} url={'Bish'} clicks={123} date={'3 days ago'}/>
               <RecentLinks title={'Baba'} url={'asd'} clicks={22} date={'a week ago'}/>
             </div>
             {/* <div className="flex mt-5 justify-center justfiy-self-center w-full sm:w-2/3 lg:w-1/2 self-center rounded-2xl border p-2 font-semibold
