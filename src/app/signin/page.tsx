@@ -30,7 +30,7 @@ const Main = () => {
       throw new Error(data?.error || `Request failed (${res.status})`);
     }
 
-    window.location.href = "/";
+    window.location.href = "/dashboard";
   } catch (err: unknown) {
     if (err instanceof Error) {
       alert(err.message || "Something went wrong.");
@@ -44,9 +44,7 @@ const Main = () => {
 
   return (
     <div className="container mx-auto px-4 text-primary-text">
-      {/* центрируем по высоте и ширине */}
       <div className="flex min-h-screen items-center justify-center py-8 sm:py-12">
-        {/* карточка с токенами темы */}
         <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 sm:p-8">
           <h2 className="text-center font-bold text-2xl sm:text-3xl text-primary-text">
             Sign in

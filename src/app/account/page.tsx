@@ -16,9 +16,8 @@ const Account = () => {
     };
 
     return (
-        <div>
-            <h1>Account Page</h1>
-            <button className="mt-100 ml-200 border" onClick={handleLogout}>Log out</button>
+        <div className="container text-primary-text mx-auto px-4 mt-40">
+            <button className="p-10 rounded-2xl  border" onClick={handleLogout}>Log out</button>
         </div>
     );
 }

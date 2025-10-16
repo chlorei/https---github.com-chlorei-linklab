@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     siteName: "Relinxr",
     images: [
       {
-        url: "/logo.png",
+        url: "/fulllogo-black.png",
         width: 800,
         height: 800,
         alt: "Relinxr Logo",
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     creator: "@sinaiida",
   },
   icons: {
-    icon: "/logo.png",
+    icon: "/logo-black.png",
   },
 };
 export default function RootLayout({

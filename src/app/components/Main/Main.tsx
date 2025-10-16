@@ -14,7 +14,7 @@ const Main = () => {
             pauseDuration={1500}
             showCursor
             cursorCharacter=""
-            className="text-4xl font-bold text-primary-text text-center"
+            className="text-4xl text-primary-text text-center"
           />
         </div>
 
