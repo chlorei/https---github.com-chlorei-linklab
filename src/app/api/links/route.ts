@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import * as LinkController from "@/lib/controllers/link.controller"
+import { requireSession } from "@/lib/auth/auth";
 
 export const runtime = "nodejs";
 
@@ -28,6 +29,9 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
-  const links = await LinkController.list();
+  const session = await requireSession(); 
+  const links = await LinkController.listByUserId(session.id);
   return NextResponse.json({ ok: true, links });
 }
+
+

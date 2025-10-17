@@ -14,7 +14,7 @@ const RecentLinks = (props: RecentLinksProps) => {
             <h3 className='font-bold'>{props.title}</h3>
 
             <div className="mt-1 gap-9 flex-row items-center flex">
-                <a href={props.url} className='text-sm text-gray-500'>{props.url}</a>
+                <a href={props.url} className='text-sm text-gray-500'>rld.bio/{props.url}</a>
                 <p className='text-sm md:block hidden text-gray-500'>{props.clicks} Clicks</p>
                 <p className='text-sm md:block hidden text-gray-500'>{props.date}</p>
             </div>

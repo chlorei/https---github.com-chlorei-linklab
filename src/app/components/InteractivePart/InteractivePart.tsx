@@ -1,12 +1,43 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+type Session = {
+  id?: string;
+};
 
 export default function InteractivePart() {
+  const [session, setSession] = useState<Session | null>(null);
   const [url, setUrl] = useState("");
   const [shortUrl, setShortUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+    useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/auth/me", { cache: "no-store" });
+        const data = await res.json();
+        console.log("Session data:", data.user);
+        if (res.ok && data.ok) setSession(data.user as Session);
+        else setSession(null);
+      } catch {
+        setSession(null);
+      }
+    })();
+  }, []);
+
+  async function getSessionSafe(): Promise<Session | null> {
+  if (session !== null) return session; // уже есть либо null
+  try {
+    const res = await fetch("/api/auth/me", { cache: "no-store" });
+    const data = await res.json().catch(() => null);
+    return res.ok && data?.ok ? (data.user as Session) : null;
+  } catch {
+    return null;
+  }
+}
+
+  
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
@@ -17,10 +48,11 @@ export default function InteractivePart() {
 
     setLoading(true);
     try {
+      const session = await getSessionSafe();
       const res = await fetch("/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ originalUrl: value }),
+        body: JSON.stringify({ originalUrl: value, userId: session?.id ?? null}),
       });
 
       let data: unknown;

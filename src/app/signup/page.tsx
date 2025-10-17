@@ -65,6 +65,7 @@ const Main = () => {
                 className="h-11 w-full rounded-2xl border px-4 outline-none transition
                            focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
               />
+
               <input
                 name="lastName"
                 type="text"
@@ -85,6 +86,7 @@ const Main = () => {
                 className="h-11 w-full rounded-2xl border px-4 outline-none transition
                            focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
               />
+
               <input
                 name="email2"
                 type="email"
@@ -94,6 +96,7 @@ const Main = () => {
                 className="h-11 w-full rounded-2xl border px-4 outline-none transition
                            focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
               />
+
             </div>
 
             <div className="flex flex-col gap-3">
@@ -107,6 +110,7 @@ const Main = () => {
                 className="h-11 w-full rounded-2xl border px-4 outline-none transition
                            focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
               />
+
               <input
                 name="password2"
                 type="password"
@@ -117,6 +121,7 @@ const Main = () => {
                 className="h-11 w-full rounded-2xl border px-4 outline-none transition
                            focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
               />
+
             </div>
 
             <button
@@ -126,6 +131,7 @@ const Main = () => {
                          active:translate-y-0 active:shadow-md
                          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/60 focus-visible:ring-offset-2"
             >
+              
               Sign up
             </button>
 

@@ -1,8 +1,38 @@
-import React from 'react'
+"use client";
+
+import React, { use, useEffect } from 'react'
 import RecentLinks from '../components/UI/RecentLinks/RecentLinks'
 import TextType from '@/app/components/UI/TextType/TextType'
 import Link from 'next/link'
+
+
+interface LinkItem {
+  createdAt: string;
+  _id: string;
+  originalUrl: string;
+  shortId: string;
+  clicks: number;
+  date: string;
+}
+
 const Links = () => {
+
+
+  const [links, setLinks] = React.useState<Array<LinkItem>>([]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/links", { cache: "no-store" });
+        const data = await res.json();
+        if (res.ok && data.ok) setLinks(data.links);
+        console.log(data.links);
+      } catch {
+        setLinks([]);
+      }
+    })();
+  }, []);
+  
   return (
     <div className="container text-primary-text mx-auto px-4 mt-40">
 
@@ -40,28 +70,35 @@ const Links = () => {
               </Link>
             </div>
           </div>
+
+          <input
+                name="search"
+                type="text"
+                placeholder="Search"
+                className="h-11 w-full rounded-2xl border px-4 mt-3 outline-none transition
+                           focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
+              />
           
-          <div className='flex flex-col border-2 rounded-2xl mt-17 p-5'>
+          <div className='flex flex-col border-2 rounded-2xl mt-3 p-5'>
             <h3 className='font-bold w-full'>All Links</h3>
             <p className='text-sm w-full text-gray-500 mt-2'>Your most recently shortened links</p>
             <div className="mt-5">
-              <RecentLinks title={'Biba'} url={'Bish'} clicks={123} date={'3 days ago'}/>
-              <RecentLinks title={'Baba'} url={'asd'} clicks={22} date={'a week ago'}/>
-              <RecentLinks title={'Boba'} url={'Bish'} clicks={123} date={'3 days ago'}/>
-              <RecentLinks title={'Baba'} url={'asd'} clicks={22} date={'a week ago'}/>
+              {links.length === 0 && (
+                <p className="text-gray-500">No links found. Start by creating a new shortened link!</p>
+              )}
+              {links.map(link => (
+                // console.log(link),
+                <RecentLinks key={link._id} title={link.originalUrl} url={link.shortId} clicks={link.clicks} date={link.createdAt} />
+              ))}
+
             </div>
-            {/* <div className="flex mt-5 justify-center justfiy-self-center w-full sm:w-2/3 lg:w-1/2 self-center rounded-2xl border p-2 font-semibold
-                         transition hover:bg-hover-button-bg hover:text-hover-button-text hover:shadow-lg hover:-translate-y-0.5
-                         active:translate-y-0 active:shadow-md
-                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/60 focus-visible:ring-offset-2">
-              <Link href="/links" className="">
-                View all links!
-              </Link>
-            </div> */}
-            
           </div>
     </div>
   )
 }
 
 export default Links
+function setLinks(arg0: never[]) {
+  throw new Error('Function not implemented.');
+}
+

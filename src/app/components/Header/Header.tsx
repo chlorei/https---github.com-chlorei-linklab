@@ -54,7 +54,6 @@ const Header = () => {
                   { label: 'Converse', href: '/' },
                   session ? {label: "Dashboard", href: '/dashboard'} : null,
                   session ? {label: "Links", href: '/links'} : null,
-                  // session ? {label: "Analytics", href: '/analytics'} : null,
                   { label: 'About', href: '/about' },
                   session ? { label: 'Account', href: '/account' } : { label: 'Sign Up', href: '/signup' }
               ].filter((item): item is { label: string; href: string } => item !== null)}

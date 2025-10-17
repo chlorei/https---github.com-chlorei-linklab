@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     title: "Relinxr — Smarter Link Management",
     description:
       "Shorten, track, and manage links with Relinxr — open-source, fast, and beautiful.",
-    url: "https://relinxr.com",
+    url: "https://rld.bio",
     siteName: "Relinxr",
     images: [
       {

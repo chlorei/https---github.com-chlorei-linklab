@@ -21,7 +21,6 @@ const Main = () => {
         <div className="mt-20 w-full max-w-2xl self-center rounded-2xl border-2 p-10">
           <h1 className="mb-3 font-bold text-primary-text normal-case">Shorten your link</h1>
           <InteractivePart />
-          
         </div>
       </div>
     </div>

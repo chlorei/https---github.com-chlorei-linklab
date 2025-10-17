@@ -25,5 +25,6 @@ export async function GET(
     Link.updateOne({ _id: link._id }, { $inc: { clicksCount: 1 } }),
   ]);
 
+  
   return NextResponse.redirect(link.originalUrl, { status: 302 });
 }
