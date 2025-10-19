@@ -18,7 +18,7 @@ export function middleware(req: NextRequest) {
       });
     }
     const url = req.nextUrl.clone();
-    url.pathname = "/auth/login";
+    url.pathname = "/signin";
     return NextResponse.redirect(url);
   }
 
@@ -33,7 +33,7 @@ export function middleware(req: NextRequest) {
       });
     }
     const url = req.nextUrl.clone();
-    url.pathname = "/auth/login";
+    url.pathname = "/signin";
     return NextResponse.redirect(url);
   }
 }

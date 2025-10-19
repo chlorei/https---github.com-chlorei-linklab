@@ -24,7 +24,6 @@ export async function findAll() {
 export async function findByUserId(userId: string) {
   await dbConnect();
 
-  // если userId = null, вернуть пустой массив
   if (!userId) return [];
 
   return Link.find({ userId: new Types.ObjectId(userId) })

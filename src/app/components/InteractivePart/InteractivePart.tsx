@@ -12,22 +12,22 @@ export default function InteractivePart() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("/api/auth/me", { cache: "no-store" });
-        const data = await res.json();
-        console.log("Session data:", data.user);
-        if (res.ok && data.ok) setSession(data.user as Session);
-        else setSession(null);
-      } catch {
-        setSession(null);
-      }
-    })();
-  }, []);
+  useEffect(() => {
+  (async () => {
+    try {
+      const res = await fetch("/api/auth/me", { cache: "no-store" });
+      const data = await res.json();
+      console.log("Session data:", data.user);
+      if (res.ok && data.ok) setSession(data.user as Session);
+      else setSession(null);
+    } catch {
+      setSession(null);
+    }
+  })();
+}, []);
 
   async function getSessionSafe(): Promise<Session | null> {
-  if (session !== null) return session; // уже есть либо null
+  if (session !== null) return session; 
   try {
     const res = await fetch("/api/auth/me", { cache: "no-store" });
     const data = await res.json().catch(() => null);
@@ -37,7 +37,7 @@ export default function InteractivePart() {
   }
 }
 
-  
+
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
@@ -49,6 +49,7 @@ export default function InteractivePart() {
     setLoading(true);
     try {
       const session = await getSessionSafe();
+      // await fetchVisits();
       const res = await fetch("/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

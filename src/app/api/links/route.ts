@@ -29,6 +29,7 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
+  
   const session = await requireSession(); 
   const links = await LinkController.listByUserId(session.id);
   return NextResponse.json({ ok: true, links });

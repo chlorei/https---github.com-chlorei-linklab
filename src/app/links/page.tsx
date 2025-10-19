@@ -4,6 +4,7 @@ import React, { use, useEffect } from 'react'
 import RecentLinks from '../components/UI/RecentLinks/RecentLinks'
 import TextType from '@/app/components/UI/TextType/TextType'
 import Link from 'next/link'
+import Image from 'next/image'
 
 
 interface LinkItem {
@@ -33,6 +34,7 @@ const Links = () => {
     })();
   }, []);
   
+  
   return (
     <div className="container text-primary-text mx-auto px-4 mt-40">
 
@@ -61,12 +63,33 @@ const Links = () => {
                 />
               </div>
             </div>
-            <div className="flex justify-center justfiy-self-center w-full sm:w-1/3 lg:w-1/5 self-center rounded-2xl border p-2 font-semibold
-                         transition hover:bg-hover-button-bg hover:text-hover-button-text hover:shadow-lg hover:-translate-y-0.5
-                         active:translate-y-0 active:shadow-md
-                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/60 focus-visible:ring-offset-2">
-              <Link href="/" className="w-full h-full text-center">
-                Create more
+            <div
+              className="
+                flex items-center justify-center
+                w-full sm:w-1/3 lg:w-1/5
+                text-primary-text
+                bg-bg-primary rounded-2xl border p-2 font-semibold
+                transition hover:bg-hover-primary hover:text-hover-button-text hover:shadow-lg hover:-translate-y-0.5
+                active:translate-y-0 active:shadow-md
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2
+              "
+            >
+              <Link
+                href="/"
+                className="
+                  relative flex items-center justify-center w-full h-full p-2
+                  text-center
+                "
+              >
+                <Image
+                  src="/icons/plus (2).svg"
+                  alt="Create Icon"
+                  width={22}
+                  height={22}
+                  className="absolute left-4"
+                />
+
+                <h3 className="w-full text-center">Create more</h3>
               </Link>
             </div>
           </div>
@@ -87,7 +110,6 @@ const Links = () => {
                 <p className="text-gray-500">No links found. Start by creating a new shortened link!</p>
               )}
               {links.map(link => (
-                // console.log(link),
                 <RecentLinks key={link._id} title={link.originalUrl} url={link.shortId} clicks={link.clicks} date={link.createdAt} />
               ))}
 
@@ -98,7 +120,4 @@ const Links = () => {
 }
 
 export default Links
-function setLinks(arg0: never[]) {
-  throw new Error('Function not implemented.');
-}
 

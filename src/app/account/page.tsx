@@ -1,7 +1,10 @@
 "use client"
 import React from 'react'
 import TextType from '@/app/components/UI/TextType/TextType'
+import Image from 'next/image'
 const Account = () => {
+
+
     const handleLogout = async () => {
         try{
             await fetch('/api/auth/logout', {
@@ -33,12 +36,13 @@ const Account = () => {
               </div>
             
             </div>
-            <button className="flex justify-center justfiy-self-center w-full sm:w-1/3 lg:w-1/10 self-center bg-red-400 rounded-2xl border p-2 font-semibold
+            <button className="flex justify-center items-center  justfiy-self-center w-full sm:w-1/3 lg:w-1/10 self-center bg-red-400 rounded-2xl border p-2 font-semibold
                          transition hover:bg-red-600 hover:text-hover-button-text hover:shadow-lg hover:-translate-y-0.5
                          active:translate-y-0 active:shadow-md
                          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2"
                           onClick={handleLogout}>
-            Logout
+              <Image src="/icons/log-out.svg" alt="Logout Icon" width={22} height={22} className='mr-2' />
+              Logout
 
             </button>
           </div>
