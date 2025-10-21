@@ -16,7 +16,7 @@ type ActivityChartProps = {
 };
 
 export default function ActivityChart({ data }: ActivityChartProps) {
-  console.log("ActivityChart data:", data);
+  console.log("ActivityChart daata:", data);
   return (
     <div className="rounded-2xl border p-4 shadow-sm bg-background">
       <h2 className="mb-2 text-sm text-muted-foreground">Activity (Last 7 Days)</h2>

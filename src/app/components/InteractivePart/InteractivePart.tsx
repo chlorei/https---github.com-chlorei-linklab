@@ -84,7 +84,7 @@ export default function InteractivePart() {
       setLoading(false);
     }
   }
-
+  console.log("Rendering InteractivePart with session:");
   return (
     <div className="w-full max-w-2xl">
       <form onSubmit={onSubmit} className="flex flex-col gap-4">

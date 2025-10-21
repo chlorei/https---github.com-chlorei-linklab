@@ -1,7 +1,7 @@
 "use client"
 
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import TextType from '@/app/components/UI/TextType/TextType'
 import DashboardLinks from '@/app/components/UI/DashboardLinks/DashboardLinks'
 import ActivityChart from '@/app/components/ActivityChart/ActivityChart'
@@ -31,10 +31,13 @@ const Dashboard = () => {
   const [links, setLinks] = React.useState<Array<LinkItem>>([]);
   const [amountVisits, setAmountVisits] = useState<number>(0);
 
-
+  const didRun = useRef(false);
   useEffect(() => {
     (async () => {
       try {
+        if (didRun.current) return;
+        didRun.current = true;
+        console.log("asdasdasdasdkasdjkas");
         const res = await fetch("/api/visits", {cache: "no-store"});
         const data = await res.json();
         console.log("Visits data:", data);
