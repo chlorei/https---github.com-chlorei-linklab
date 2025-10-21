@@ -18,6 +18,7 @@ export default function InteractivePart() {
       const res = await fetch("/api/auth/me", { cache: "no-store" });
       const data = await res.json();
       console.log("Session data:", data.user);
+      console.log("type of data.user.id:", typeof data.user?.id);
       if (res.ok && data.ok) setSession(data.user as Session);
       else setSession(null);
     } catch {

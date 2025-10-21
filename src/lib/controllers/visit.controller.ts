@@ -16,7 +16,8 @@ export async function countByLinkId(linkId: Types.ObjectId) {
     console.log("Counting visits for linkId:", linkId);
     return Repo.countByLinkId(linkId);
 }
-
-export async function countVisitsLast7Days(linkIds: string[], timezone = "Europe/Berlin") {
-    return Repo.countVisitsLast7Days(linkIds, timezone);
+export async function countByUserId(userId: Types.ObjectId) {
+    if (!userId) return 0;
+    console.log("Counting visits for userId:", userId);
+    return Repo.countByUserId(userId);
 }

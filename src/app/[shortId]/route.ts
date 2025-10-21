@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db/dbConnect";
 import Link from "@/lib/db/models/Link";
-import Visit from "@/lib/db/models/Visit";
+import * as VisitController from "@/lib/controllers/visit.controller";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,11 +20,15 @@ export async function GET(
   const ip = request.headers.get("x-forwarded-for") ?? undefined;
   const ua = request.headers.get("user-agent") ?? undefined;
 
-  void Promise.allSettled([
-    Visit.create({ linkId: link._id, ip, userAgent: ua}),
-    Link.updateOne({ _id: link._id }, { $inc: { clicksCount: 1 } }),
+  // void Promise.allSettled([
+  //   VisitController.addOne({ linkId: link._id, ip, userAgent: ua, creatorUserId: link.userId}),
+  //   Link.updateOne({ _id: link._id }, { isActive: false, $inc: { clicks: 1 } }),
+  // ]);
+  await Promise.all([
+    VisitController.addOne({ linkId: link._id, ip, userAgent: ua, creatorUserId: link.userId}),
+    Link.updateOne({ _id: link._id }, { isActive: true, $inc: { clicks: 1 } }),
   ]);
 
-  
   return NextResponse.redirect(link.originalUrl, { status: 302 });
+  // return NextResponse.redirect(link.originalUrl, { status: 302 });
 }

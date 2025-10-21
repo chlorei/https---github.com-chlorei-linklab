@@ -12,7 +12,7 @@ export type InsertLinkInput = {
 
 export async function insert(doc: InsertLinkInput) {
   await dbConnect();
-  return Link.create({ ...doc, isActive: true, clicksCount: 0 });
+  return Link.create({ ...doc, isActive: true, clicks: 0 });
 }
 
 export async function findAll() {

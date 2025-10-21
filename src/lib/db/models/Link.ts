@@ -7,10 +7,10 @@ const LinkSchema = new Schema({
   title:       { type: String, default: null },
   isActive:    { type: Boolean, default: true },
   userId:      { type: Schema.Types.ObjectId, ref: "User", default: null },
+  clicks: { type: Number, default: 0 },
 }, { timestamps: true });
 
 LinkSchema.index({ userId: 1, createdAt: -1 });
-LinkSchema.index({ anonId: 1, createdAt: -1 });
 LinkSchema.index({ domain: 1, shortId: 1 }, { unique: true, sparse: true });
 
 export default models.Link || model("Link", LinkSchema);

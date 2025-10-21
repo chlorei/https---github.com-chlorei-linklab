@@ -6,6 +6,7 @@ const visitSchema = new Schema(
     ts: { type: Date, default: Date.now, index: true },
     ip: String,
     userAgent: String,
+    creatorUserId: { type: Types.ObjectId, ref: "User", required: false, default: "undefined" },
   },
   { timestamps: false }
 );

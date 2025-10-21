@@ -1,8 +1,31 @@
 "use client"
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import TextType from '@/app/components/UI/TextType/TextType'
 import Image from 'next/image'
+import { Session } from '@/lib/auth/auth'
 const Account = () => {
+    const [session, setSession] = useState<Session | null>(null);
+    const [firstName, setFirstName] = useState<string>('');
+    const [lastName, setLastName] = useState<string>('');
+    const [email, setEmail] = useState<string>('');
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const res = await fetch('/api/auth/me', { cache: 'no-store' });
+                const data = await res.json();
+                if (res.ok && data.ok) {
+                    setSession(data.user);
+                    console.log("Session data:", data.user);
+                } else { 
+                  setSession(null)
+                }
+              } catch (error){
+                console.error("Error", error);
+                setSession(null);
+              }
+          })();
+    }, []);
 
 
     const handleLogout = async () => {
@@ -54,6 +77,8 @@ const Account = () => {
             <form className="mt-6 flex flex-col gap-5">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <input
+                  onChange={(e) => setFirstName(e.target.value)}
+                  value={firstName || session?.name?.split(' ')[0] || ''}
                   name="firstName"
                   type="text"
                   placeholder="First name"
@@ -62,6 +87,8 @@ const Account = () => {
                 />
 
                 <input
+                  onChange={(e) => setLastName(e.target.value)}
+                  value={lastName || session?.name?.split(' ')[1] || ''}
                   name="lastName"
                   type="text"
                   placeholder="Last name"
@@ -73,6 +100,8 @@ const Account = () => {
 
               <div className="flex flex-col gap-3">
                 <input
+                  onChange={(e) => setEmail(e.target.value)}
+                  value={email || session?.email || ''}
                   name="email"
                   type="email"
                   placeholder="Email"

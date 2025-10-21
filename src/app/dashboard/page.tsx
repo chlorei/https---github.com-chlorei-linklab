@@ -1,7 +1,7 @@
 "use client"
 
 
-import React, { useEffect, useState } from 'react'
+import React, { cache, useEffect, useState } from 'react'
 import TextType from '@/app/components/UI/TextType/TextType'
 import DashboardLinks from '@/app/components/UI/DashboardLinks/DashboardLinks'
 import ActivityChart from '@/app/components/ActivityChart/ActivityChart'
@@ -30,52 +30,45 @@ const Dashboard = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [links, setLinks] = React.useState<Array<LinkItem>>([]);
   const [amountVisits, setAmountVisits] = useState<number>(0);
-  const [visitsLast7Days, setVisitsLast7Days] = useState<Array<{ date: string; count: number }>>([]);
 
-  
-  
+
   useEffect(() => {
     (async () => {
       try {
-        const visitUrl = session?.id ? `/api/visits?linkId=${session.id}` : "/api/visits";
-        const visitRes = await fetch(visitUrl, {
-          method: "GET",
-          cache: "no-store"
-        });
-        // console.log("Fetch response for visits:", visitRes);
-        const visitData = await visitRes.json();
-        // console.log("Visits data:", visitData);
-        if (visitRes.ok && visitData.ok) {
-          setAmountVisits(visitData.visits);
-          setVisitsLast7Days(visitData.series || []);
-        } else {
-          setAmountVisits(0);
+        const res = await fetch("/api/visits", {cache: "no-store"});
+        const data = await res.json();
+        console.log("Visits data:", data);
+        if (res.ok && data.ok){
+          setAmountVisits(data.visits);
         }
-        // console.log("Fetching links for linkId:", session?.id);
+      } catch {
+        setAmountVisits(0);
+      }
+    })();
+  }, []); 
+
+
+  useEffect(() => {
+    (async () => {
+      try {
+        
         const url = session?.id ? `/api/links?linkId=${session.id}` : "/api/links";
-        const res = await fetch(url, {
-          method: "GET", 
-          cache: "no-store"
-        });
+        const res = await fetch(url, { cache: "no-store" });
         const data = await res.json();
           if (res.ok && data.ok) setLinks(data.links);
-          // console.log(data.links);
         } catch {
           setLinks([]);
         }
-      })();
-    }, []);
-    
+    })();
+  },[]);
 
-  const [greetingsText , setGreetingsText] = useState<string>("");
-
+  const [greetingsText, setGreetingsText] = useState<string>("");
   useEffect(() => {
     (async () => {
       try {
         const res = await fetch("/api/auth/me", { cache: "no-store" });
         const data = await res.json();
         setSession(data.user as Session);
-        // console.log("Session data:", data);
         if (res.ok && data.ok){
           setGreetingsText(`Welcome back,  ${data.user?.name}!`);
         }
@@ -112,7 +105,7 @@ const Dashboard = () => {
             <h3 className='font-bold'>Activity Overview</h3>
             <p className='text-sm text-gray-500 mt-2'>Here you can find an overview of your recent activities.</p>
             <div className="mt-5">
-              <ActivityChart data={visitsLast7Days} />
+              <ActivityChart data={[]} />
             </div>
           </div>
     
