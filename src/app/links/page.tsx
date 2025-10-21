@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import RecentLinks from '../components/UI/RecentLinks/RecentLinks'
 import TextType from '@/app/components/UI/TextType/TextType'
 import Link from 'next/link'

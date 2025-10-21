@@ -1,7 +1,7 @@
 "use client"
 
 
-import React, { cache, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import TextType from '@/app/components/UI/TextType/TextType'
 import DashboardLinks from '@/app/components/UI/DashboardLinks/DashboardLinks'
 import ActivityChart from '@/app/components/ActivityChart/ActivityChart'
@@ -60,7 +60,7 @@ const Dashboard = () => {
           setLinks([]);
         }
     })();
-  },[]);
+  },[session?.id]);
 
   const [greetingsText, setGreetingsText] = useState<string>("");
   useEffect(() => {
