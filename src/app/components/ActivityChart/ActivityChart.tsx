@@ -15,7 +15,7 @@ export default function ActivityChart({ data }: { data: ActivityPoint[] }) {
             <XAxis dataKey="day" />
             <YAxis allowDecimals={false} />
             <Tooltip />
-            <Line type="monotone" dataKey="clicks" strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="clicks" strokeWidth={2} dot={false} color={"plack"} />
           </LineChart>
         </ResponsiveContainer>
       </div>
