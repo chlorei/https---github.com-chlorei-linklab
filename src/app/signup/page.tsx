@@ -22,7 +22,7 @@ const Main = () => {
 
   if (email !== email2) { setMsg("Emails do not match"); return; }
   if (pass  !== pass2)  { setMsg("Passwords do not match"); return; }
-
+  
   try {
     const res = await fetch("/api/auth/register", {
       method: "POST",
@@ -42,6 +42,7 @@ const Main = () => {
       return;
     }
     setMsg(data?.message || "Registered");
+    window.location.href = "/signin";
     form.reset();
   } catch (err) {
     console.error(err);

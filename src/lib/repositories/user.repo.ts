@@ -18,3 +18,25 @@ export async function findOneByEmail(email: string) {
   return User.findOne({ email }).lean(); 
 }
 
+
+export async function updateProfile(userId: string, updateData: {
+  firstName?: string; lastName?: string; email?: string
+}) {
+  await dbConnect();
+  // вернём обновлённый документ
+  return User.findByIdAndUpdate(
+    userId,
+    { $set: updateData },
+    { new: true, runValidators: true, lean: true }
+  );
+}
+
+export async function deleteOne(userId: string) {
+  await dbConnect();
+  return User.findByIdAndDelete(userId).lean();
+}
+
+export async function deleteAll() {
+  await dbConnect();
+  return User.deleteMany({}).lean();
+}

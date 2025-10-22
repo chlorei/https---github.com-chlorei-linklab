@@ -36,3 +36,30 @@ export async function findOneByEmail(email : string){
   return Repo.findOneByEmail(email);
 }
 
+export async function updateProfile(
+  userId: string,
+  updateData: { firstName?: string; lastName?: string; email?: string }
+) {
+  const clean = {
+    firstName: updateData.firstName?.trim(),
+    lastName:  updateData.lastName?.trim(),
+    email:     updateData.email?.trim().toLowerCase(),
+  };
+
+  // уберём пустые строки, чтобы не перезаписывать null-ами
+  Object.keys(clean).forEach((k) => {
+    const key = k as keyof typeof clean;
+    if (clean[key] === "" || clean[key] == null) delete clean[key];
+  });
+
+  const updated = await Repo.updateProfile(userId, clean);
+  return updated; // { _id, firstName, lastName, email, ... }
+}
+
+export async function deleteOne(userId: string) {
+  return Repo.deleteOne(userId);
+}
+
+export async function deleteAll() {
+  return Repo.deleteAll();
+}

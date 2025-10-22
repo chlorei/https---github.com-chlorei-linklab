@@ -3,7 +3,8 @@ import { Montserrat } from "next/font/google";
 import "./globals.css";
 import Header from "@/app/components/Header/Header";
 import { ThemeToggle } from "./components/ThemeToggle/ThemeToggle";
-import { ThemeProvider } from "./providers/ThemeProvider";
+import AppProviders from "@/app/providers/AppProviders";
+import { getSession } from "@/lib/auth/auth";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -12,7 +13,7 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: "Relinxr — Open-Source Link Shortener",
+  title: "Relinxr — Smarter Link Management",
   description:
     "Relinxr is a modern, open-source link shortener built with Next.js 15 + MongoDB. Shorten, track, and manage your links with analytics and custom domains — fast, simple, and privacy-friendly.",
   keywords: [
@@ -55,16 +56,24 @@ export const metadata: Metadata = {
     icon: "/logo-black.png",
   },
 };
-export default function RootLayout({
+
+
+
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+  const s = await getSession();
+  const initialSession = s ? { id: s.id, email: s.email, name: s.name } : null;
+
   return (
     <html lang="en">
       <body className={`${montserrat.variable} antialiased`}>
         
-        <ThemeProvider>
+        <AppProviders initialSession={initialSession}>
           <Header />
           {children}
           <div
@@ -85,7 +94,7 @@ export default function RootLayout({
             "
           />
           </div>
-        </ThemeProvider>
+        </AppProviders>
       </body>
     </html>
   );

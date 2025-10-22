@@ -8,9 +8,10 @@ const visitSchema = new Schema(
     userAgent: String,
     creatorUserId: { type: Types.ObjectId, ref: "User", required: false, default: "undefined" },
   },
-  { timestamps: false }
+  { timestamps: true }
 );
 
 visitSchema.index({ linkId: 1, ts: -1 });
+visitSchema.index({ creatorUserId: 1, createdAt: -1 });
 
 export default models.Visit || model("Visit", visitSchema);

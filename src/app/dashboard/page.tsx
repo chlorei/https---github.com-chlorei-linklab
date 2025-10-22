@@ -1,143 +1,178 @@
-"use client"
+// "use client"
 
 
-import React, { useEffect, useRef, useState } from 'react'
-import TextType from '@/app/components/UI/TextType/TextType'
-import DashboardLinks from '@/app/components/UI/DashboardLinks/DashboardLinks'
-import ActivityChart from '@/app/components/ActivityChart/ActivityChart'
-import RecentLinks from '../components/UI/RecentLinks/RecentLinks'
-import Link from 'next/link'
+// import React, { useEffect, useRef, useState } from 'react'
+// import TextType from '@/app/components/UI/TextType/TextType'
+// import DashboardLinks from '@/app/components/UI/DashboardLinks/DashboardLinks'
+// import ActivityChart from '@/app/components/ActivityChart/ActivityChart'
+// import RecentLinks from '../components/UI/RecentLinks/RecentLinks'
+// import Link from 'next/link'
+// import { useThemeCtx } from '@/app/providers/ThemeProvider';
+// type Session = {
+//   id: string, 
+//   email: string
+//   name: string;
+// };
 
-type Session = {
-  id: string, 
-  email: string
-  name: string;
-};
-
-interface LinkItem {
-  createdAt: string;
-  _id: string;
-  originalUrl: string;
-  shortId: string;
-  clicks: number;
-  date: string;
-}
-
-
+// interface LinkItem {
+//   createdAt: string;
+//   _id: string;
+//   originalUrl: string;
+//   shortId: string;
+//   clicks: number;
+//   date: string;
+// }
 
 
-const Dashboard = () => {
-  const [session, setSession] = useState<Session | null>(null);
-  const [links, setLinks] = React.useState<Array<LinkItem>>([]);
-  const [amountVisits, setAmountVisits] = useState<number>(0);
-
-  const didRun = useRef(false);
-  useEffect(() => {
-    (async () => {
-      try {
-        if (didRun.current) return;
-        didRun.current = true;
-        console.log("asdasdasdasdkasdjkas");
-        const res = await fetch("/api/visits", {cache: "no-store"});
-        const data = await res.json();
-        console.log("Visits data:", data);
-        if (res.ok && data.ok){
-          setAmountVisits(data.visits);
-        }
-      } catch {
-        setAmountVisits(0);
-      }
-    })();
-  }, []); 
 
 
-  useEffect(() => {
-    (async () => {
-      try {
+// const Dashboard = () => {
+
+//   const {theme} = useThemeCtx();
+//   const [session, setSession] = useState<Session | null>(null);
+//   const [links, setLinks] = useState<Array<LinkItem>>([]);
+//   const [amountVisits, setAmountVisits] = useState<number>(0);
+  
+//   const didRun = useRef(false);
+//   useEffect(() => {
+//     (async () => {
+//       try {
+//         if (didRun.current) return;
+//         didRun.current = true;
+//         console.log("asdasdasdasdkasdjkas");
+//         const res = await fetch("/api/visits", {cache: "no-store"});
+//         const data = await res.json();
+//         console.log("Visits data:", data);
+//         if (res.ok && data.ok){
+//           setAmountVisits(data.visits);
+//         }
+//       } catch {
+//         setAmountVisits(0);
+//       }
+//     })();
+//   }, []); 
+
+
+//   useEffect(() => {
+//     (async () => {
+//       try {
         
-        const url = session?.id ? `/api/links?linkId=${session.id}` : "/api/links";
-        const res = await fetch(url, { cache: "no-store" });
-        const data = await res.json();
-          if (res.ok && data.ok) setLinks(data.links);
-        } catch {
-          setLinks([]);
-        }
-    })();
-  },[session?.id]);
+//         const url = session?.id ? `/api/links?linkId=${session.id}` : "/api/links";
+//         const res = await fetch(url, { cache: "no-store" });
+//         const data = await res.json();
+//           if (res.ok && data.ok) setLinks(data.links);
+//         } catch {
+//           setLinks([]);
+//         }
+//     })();
+//   },[session?.id]);
 
-  const [greetingsText, setGreetingsText] = useState<string>("");
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("/api/auth/me", { cache: "no-store" });
-        const data = await res.json();
-        setSession(data.user as Session);
-        if (res.ok && data.ok){
-          setGreetingsText(`Welcome back,  ${data.user?.name}!`);
-        }
-      } catch {
-      }
-    })();
-  }, []); 
+//   const [greetingsText, setGreetingsText] = useState<string>("");
+//   useEffect(() => {
+//     (async () => {
+//       try {
+//         const res = await fetch("/api/auth/me", { cache: "no-store" });
+//         const data = await res.json();
+//         setSession(data.user as Session);
+//         if (res.ok && data.ok){
+//           setGreetingsText(`Welcome back,  ${data.user?.name}!`);
+//         }
+//       } catch {
+//       }
+//     })();
+//   }, []); 
 
+
+//   return (
+//     <div className="container mx-auto px-4 mt-40">
+//       <div className="flex w-full flex-col items-center">
+//         <div className="relative h-[60px] text-primary-text flex items-center justify-center ">
+//           <TextType
+//             textColors={["text-primary-text"]}
+//             text={[greetingsText]}
+//             typingSpeed={25}
+//             pauseDuration={3000}
+//             showCursor
+//             cursorCharacter=""
+//             className="text-4xl text-primary-text text-center"
+//           />
+//         </div>
+
+//         <div className="flex flex-col mt-20 w-full max-w-2xl self-center rounded-2xl p-10 ">
+//           <div className='flex flex-row flex-wrap w-full justify-center  gap-5 md:gap-10 md:justify-between'>
+//             <DashboardLinks image="/icons/link-2.svg" title={'Total Links'} count={links.length}/>
+//             <DashboardLinks image="/icons/corner-down-right.svg" title={'Total Clicks'} count={amountVisits / 2}/>
+//             <DashboardLinks image="/icons/bar-chart-2.svg" title={'Conversion Rate'} count={3.23}/>
+//             <DashboardLinks image="/icons/activity.svg" title={'Active Projects'} count={3}/>
+//           </div>
+
+//           <div className='border-2 rounded-2xl mt-20 p-5'>
+//             <h3 className='font-bold'>Activity Overview</h3>
+//             <p className='text-sm text-gray-500 mt-2'>Here you can find an overview of your recent activities.</p>
+//             <div className="mt-5">
+//               <ActivityChart data={[]} />
+//             </div>
+//           </div>
+    
+//           <div className='flex flex-col border-2 rounded-2xl mt-17 p-5'>
+//             <h3 className='font-bold w-full'>Recent Links</h3>
+//             <p className='text-sm w-full text-gray-500 mt-2'>Your most recently shortened links</p>
+//             <div className="mt-5">
+//               {links.length === 0 && (
+//                 <p className="text-gray-500">No links found. Start by creating a new shortened link!</p>
+//               )}
+//               {links.slice(0, 4).map(link => (
+//                 <RecentLinks key={link._id} title={link.originalUrl} url={link.shortId} clicks={link.clicks / 2} date={link.createdAt} />
+//               ))}
+
+//             </div>
+//             <div className="flex mt-5 justify-center justfiy-self-center w-full sm:w-2/3 lg:w-1/2 self-center rounded-2xl border p-2 font-semibold
+//                          transition hover:bg-hover-button-bg hover:text-hover-button-text hover:shadow-lg hover:-translate-y-0.5
+//                          active:translate-y-0 active:shadow-md
+//                          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/60 focus-visible:ring-offset-2">
+//               <Link href="/links" className="w-full h-full text-center">
+//                 View all links!
+//               </Link>
+//             </div>
+            
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   )
+// }
+
+// export default Dashboard
+
+
+// app/dashboard/page.tsx
+// app/dashboard/page.tsx
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/auth/auth";
+import { getLinksByUserId } from "@/lib/queries/links";
+import { countByUserId } from "@/lib/queries/visits";
+import { getLast7DaysVisitsByUser } from "@/lib/queries/activity";
+import DashboardClient from "./DashboardClient";
+
+export const revalidate = 0;
+export const dynamic = "force-dynamic";
+
+export default async function DashboardPage() {
+  const s = await getSession();
+  if (!s) redirect("/signin");
+
+  const [links, visitsCount, activity] = await Promise.all([
+    getLinksByUserId(s.id),
+    countByUserId(s.id),
+    getLast7DaysVisitsByUser(s.id, "Europe/Berlin", 7),
+  ]);
 
   return (
-    <div className="container mx-auto px-4 mt-40">
-      <div className="flex w-full flex-col items-center">
-        <div className="relative h-[60px] text-primary-text flex items-center justify-center ">
-          <TextType
-            textColors={["text-primary-text"]}
-            text={[greetingsText]}
-            typingSpeed={25}
-            pauseDuration={3000}
-            showCursor
-            cursorCharacter=""
-            className="text-4xl text-primary-text text-center"
-          />
-        </div>
-
-        <div className="flex flex-col mt-20 w-full max-w-2xl self-center rounded-2xl p-10 ">
-          <div className='flex flex-row flex-wrap w-full justify-center  gap-5 md:gap-10 md:justify-between'>
-            <DashboardLinks image="/icons/link-2.svg" title={'Total Links'} count={links.length}/>
-            <DashboardLinks image="/icons/corner-down-right.svg" title={'Total Clicks'} count={amountVisits}/>
-            <DashboardLinks image="/icons/bar-chart-2.svg" title={'Conversion Rate'} count={3.23}/>
-            <DashboardLinks image="/icons/activity.svg" title={'Active Projects'} count={3}/>
-          </div>
-
-          <div className='border-2 rounded-2xl mt-20 p-5'>
-            <h3 className='font-bold'>Activity Overview</h3>
-            <p className='text-sm text-gray-500 mt-2'>Here you can find an overview of your recent activities.</p>
-            <div className="mt-5">
-              <ActivityChart data={[]} />
-            </div>
-          </div>
-    
-          <div className='flex flex-col border-2 rounded-2xl mt-17 p-5'>
-            <h3 className='font-bold w-full'>Recent Links</h3>
-            <p className='text-sm w-full text-gray-500 mt-2'>Your most recently shortened links</p>
-            <div className="mt-5">
-              {links.length === 0 && (
-                <p className="text-gray-500">No links found. Start by creating a new shortened link!</p>
-              )}
-              {links.slice(0, 4).map(link => (
-                <RecentLinks key={link._id} title={link.originalUrl} url={link.shortId} clicks={link.clicks} date={link.createdAt} />
-              ))}
-
-            </div>
-            <div className="flex mt-5 justify-center justfiy-self-center w-full sm:w-2/3 lg:w-1/2 self-center rounded-2xl border p-2 font-semibold
-                         transition hover:bg-hover-button-bg hover:text-hover-button-text hover:shadow-lg hover:-translate-y-0.5
-                         active:translate-y-0 active:shadow-md
-                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/60 focus-visible:ring-offset-2">
-              <Link href="/links" className="w-full h-full text-center">
-                View all links!
-              </Link>
-            </div>
-            
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+    <DashboardClient
+      greetingsText={`Welcome back, ${s.name}!`}
+      links={links}
+      amountVisits={visitsCount}
+      activity={activity} // ← [{ day: "Mon", clicks: 5 }, ...]
+    />
+  );
 }
-
-export default Dashboard
