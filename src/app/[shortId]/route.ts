@@ -59,7 +59,7 @@ export async function GET(
     } catch (error) {
       console.error('IPinfo lookup failed:', error);
       countryCode = 'XX'; 
-      countryName = countryCodeToNameMap[countryCode as keyof typeof countryCodeToNameMap] ?? "Unknown";
+      countryName = countryCodeToNameMap[countryCode as keyof typeof countryCodeToNameMap] ?? "Obama";
     }
   } 
 
