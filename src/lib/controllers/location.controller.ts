@@ -1,6 +1,6 @@
 import Location from "@/lib/db/models/Location";
 import { Types } from "mongoose";
-
+import dbConnect from "../db/dbConnect";
 export type LocationLean = {
   _id: Types.ObjectId;
   countryName: string;
@@ -10,5 +10,6 @@ export type LocationLean = {
 };
 
 export async function getAllLocationsByUserId(userId: string) {
+ await dbConnect();
   return Location.find({ userId }).sort({ clicks: -1 }).lean().exec();
 }

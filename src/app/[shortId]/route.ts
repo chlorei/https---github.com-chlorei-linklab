@@ -7,6 +7,7 @@ import { IPinfoWrapper } from 'node-ipinfo';
 import dotenv from 'dotenv';
 import { countryCodeToNameMap } from "@/app/utils/countryMap";
 import Location from "@/lib/db/models/Location";
+import Visit from "@/lib/db/models/Visit";
 
 dotenv.config();
 
@@ -51,9 +52,10 @@ export async function GET(
 
   let countryCode: string | null = 'XX'; 
   let countryName = countryCodeToNameMap[countryCode as keyof typeof countryCodeToNameMap] ?? "Unknown";
+  console.log()
   if (ip && IPINFO_TOKEN) {
     try {
-      const geoResponse = await ipinfoWrapper.lookupIp('100.42.176.0');
+      const geoResponse = await ipinfoWrapper.lookupIp(ip);
       await (countryCode = geoResponse.countryCode || 'XX');  
       countryName = countryCodeToNameMap[countryCode as keyof typeof countryCodeToNameMap] ?? "Unknown";
     } catch (error) {
@@ -63,14 +65,15 @@ export async function GET(
     }
   }
 
-
+  await Visit.syncIndexes();
+  await Location.syncIndexes();
   await Promise.all([
     VisitController.addOne({ linkId: link._id, ip, userAgent: ua, creatorUserId: link.userId}),
     Location.updateOne({ countryName: countryName, userId: link.userId }, { $inc: { clicks: 1 } }, { upsert: true }),
     Link.updateOne({ _id: link._id }, { isActive: true, $inc: { clicks: 1 } }),
   ]);
 
-
+  // return new NextResponse(ip ? `IP: ${ip}` : "No IP", { status: 200 });
   return NextResponse.redirect(link.originalUrl, { status: 302 });
 }
 

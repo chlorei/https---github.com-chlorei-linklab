@@ -14,6 +14,7 @@ const LocationSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "User",
   },
+  ip: String
 }, { timestamps: true, strict: false });
 
 
