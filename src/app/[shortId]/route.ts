@@ -7,7 +7,6 @@ import { IPinfoWrapper } from 'node-ipinfo';
 import dotenv from 'dotenv';
 import { countryCodeToNameMap } from "@/app/utils/countryMap";
 import Location from "@/lib/db/models/Location";
-import Visit from "@/lib/db/models/Visit";
 
 dotenv.config();
 
@@ -47,6 +46,13 @@ export async function GET(
   const { shortId } = await context.params;
   await dbConnect();
   const link = await Link.findOne({ shortId, isActive: true });
+  if (!link ) {
+  //   // return NextResponse.redirect(new URL('/404', request.url), { status: 302 });
+  // return NextResponse.redirect('https://rld.bio/dashboard', { status: 302 });
+  return new NextResponse("Not Found", { status: 404 });
+  }
+
+
   const ip = request.headers.get("x-forwarded-for") ?? undefined;
   const ua = request.headers.get("user-agent") ?? undefined;
 
@@ -65,15 +71,13 @@ export async function GET(
     }
   }
 
-  await Visit.syncIndexes();
-  await Location.syncIndexes();
+  // await Visit.syncIndexes();
+  // await Location.syncIndexes();
   await Promise.all([
     VisitController.addOne({ linkId: link._id, ip, userAgent: ua, creatorUserId: link.userId}),
     Location.updateOne({ countryName: countryName, userId: link.userId }, { $inc: { clicks: 1 } }, { upsert: true }),
     Link.updateOne({ _id: link._id }, { isActive: true, $inc: { clicks: 1 } }),
   ]);
-
-  // return new NextResponse(ip ? `IP: ${ip}` : "No IP", { status: 200 });
   return NextResponse.redirect(link.originalUrl, { status: 302 });
 }
 
