@@ -10,6 +10,7 @@ export default async function LinksPage() {
   const s = await getSession();
   if (!s) redirect("/signin");
 
+  
   const links = await getLinksByUserId(s.id);
   return <LinksClient links={links} />;
 }

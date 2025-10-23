@@ -50,7 +50,7 @@ export default function InteractivePart() {
     try {
       const session = await getSessionSafe();
       // await fetchVisits();
-      const res = await fetch("/api/links", {
+      const res = await fetch("/api/links/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ originalUrl: value, userId: session?.id ?? null}),

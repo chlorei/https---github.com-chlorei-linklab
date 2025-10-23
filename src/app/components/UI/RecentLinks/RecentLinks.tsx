@@ -7,19 +7,19 @@ import Link from "next/link";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/en";
+import { useRouter } from "next/navigation";
 
 dayjs.extend(relativeTime);
 dayjs.locale("en");
 
 type RecentLinksProps = {
   title: string;
-  /** slug без домена: напр. "my-link" или "/my-link" */
   url: string;
   clicks: number;
   date: string | Date;
-  /** если нужен реальный href (с UTM/доменом), иначе соберём из slug */
+  id: string;
+  className?: string;
   fullUrl?: string;
-  onDelete?: () => void;
 } & HTMLAttributes<HTMLDivElement>;
 
 const RecentLinks = ({
@@ -28,13 +28,25 @@ const RecentLinks = ({
   clicks,
   date,
   fullUrl,
-  onDelete,
+  id,
   className = "",
   ...rest
 }: RecentLinksProps) => {
   const slug = url.startsWith("/") ? url.slice(1) : url;
   const href = fullUrl ?? `https://rld.bio/${slug}`;
 
+
+  const router = useRouter();
+  async function handleDelete(linkId: string) {
+      await fetch("/api/links/delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ linkId }),
+      });
+      router.refresh();
+    }
   return (
     <div
       className={[
@@ -48,7 +60,6 @@ const RecentLinks = ({
       ].join(" ")}
       {...rest}
     >
-      {/* Левая часть */}
       <div className="min-w-0 flex-1">
         <h3
           className="font-semibold text-base md:text-lg leading-tight truncate"
@@ -76,7 +87,6 @@ const RecentLinks = ({
           <span className="hidden sm:inline">·</span>
           <p className="hidden sm:inline">{dayjs(date).fromNow()}</p>
 
-          {/* На мобилках метрики на отдельной строке */}
           <div className="sm:hidden contents">
             <p className="w-full">
               <span className="tabular-nums">{clicks}</span> clicks • {dayjs(date).fromNow()}
@@ -85,7 +95,6 @@ const RecentLinks = ({
         </div>
       </div>
 
-      {/* Правая часть (действия) */}
       <div className="flex items-center sm:ml-auto gap-2">
         <Link
           href={href}
@@ -104,8 +113,8 @@ const RecentLinks = ({
         </Link>
 
         <button
+          onClick={() => handleDelete(id)}
           type="button"
-          onClick={onDelete}
           aria-label="Удалить ссылку"
           className="inline-flex rounded-xl p-2 hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-black/10"
         >

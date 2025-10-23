@@ -30,3 +30,8 @@ export async function findByUserId(userId: string) {
     .sort({ createdAt: -1 })
     .lean();
 }
+
+export async function deleteById(linkId: string) {
+  await dbConnect();
+  return Link.deleteOne({ _id: new Types.ObjectId(linkId) });
+}

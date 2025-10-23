@@ -30,3 +30,8 @@ export async function getLinksByUserId(userId: string): Promise<LinkItem[]> {
     };
   });
 }
+
+export async function removeLinkById(linkId: string): Promise<void> {
+  await LinkService.removeById(linkId);
+}
+

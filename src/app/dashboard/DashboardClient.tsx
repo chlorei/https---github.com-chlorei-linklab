@@ -73,6 +73,7 @@ export default function DashboardClient({
                   url={l.shortId}
                   clicks={l.clicks}
                   date={l.createdAt}
+                  id={l._id}
                 />
               ))}
             </div>

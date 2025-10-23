@@ -1,4 +1,3 @@
-// app/links/LinksClient.tsx
 "use client";
 
 import React, { useMemo, useState } from "react";
@@ -7,6 +6,7 @@ import RecentLinks from "@/app/components/UI/RecentLinks/RecentLinks";
 import Link from "next/link";
 import Image from "next/image";
 
+
 type LinkItem = {
   _id: string;
   originalUrl: string;
@@ -14,8 +14,9 @@ type LinkItem = {
   clicks: number;
   createdAt: string;
 };
-
 export default function LinksClient({ links }: { links: LinkItem[] }) {
+
+
   const [q, setQ] = useState("");
 
   const filtered = useMemo(() => {
@@ -27,6 +28,7 @@ export default function LinksClient({ links }: { links: LinkItem[] }) {
         l.shortId.toLowerCase().includes(s)
     );
   }, [q, links]);
+
 
   return (
     <div className="container text-primary-text mx-auto px-4 mt-40">
@@ -98,6 +100,7 @@ export default function LinksClient({ links }: { links: LinkItem[] }) {
                 url={l.shortId}
                 clicks={l.clicks}
                 date={l.createdAt}
+                id={l._id}
               />
             ))
           )}

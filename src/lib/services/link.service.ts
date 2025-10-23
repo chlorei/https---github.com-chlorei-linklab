@@ -15,3 +15,7 @@ export async function list() {
 export async function listByUserId(userId: string) {
   return Repo.findByUserId(userId);
 } 
+
+export async function removeById(linkId: string) {
+  return Repo.deleteById(linkId);
+}
