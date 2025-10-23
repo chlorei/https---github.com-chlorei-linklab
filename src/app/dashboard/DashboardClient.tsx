@@ -8,12 +8,28 @@ import DashboardLinks from "@/app/components/UI/DashboardLinks/DashboardLinks";
 import ActivityChart from "@/app/components/ActivityChart/ActivityChart";
 import RecentLinks from "@/app/components/UI/RecentLinks/RecentLinks"; // проверь путь
 
-type LinkItem = {
+
+type BasicLink = {
   _id: string;
   originalUrl: string;
   shortId: string;
   clicks: number;
-  createdAt: string;
+  createdAt: string; // уже сериализовано на сервере
+};
+
+type ActivityPoint = { day: string; clicks: number };
+
+type CountryRow = { countryName: string; clicks: number; _id?: string };
+
+type Props = {
+  greetingsText: string;
+  links: BasicLink[];
+  amountVisits: number;
+  activity: ActivityPoint[];
+  /** Опционально: отсортированный список стран по кликам */
+  locations?: CountryRow[];
+  /** Опционально: топ-страна (name/clicks) */
+  topCountry?: { name: string; clicks: number } | null;
 };
 
 export default function DashboardClient({
@@ -21,13 +37,12 @@ export default function DashboardClient({
   links,
   amountVisits,
   activity,
-}: {
-  greetingsText: string;
-  links: LinkItem[];
-  amountVisits: number;
-  activity: Array<{ day: string; clicks: number }>;
-}) {
-
+  locations,
+  topCountry,
+}: Props) {
+  // const countriesCount = locations?.length ?? 0;
+  console.log("Top country in DashboardClient:", topCountry);
+  console.log("Locations in DashboardClient:", locations);
   return (
     <div className="container mx-auto px-4 mt-40">
       <div className="flex w-full flex-col items-center">
@@ -47,8 +62,8 @@ export default function DashboardClient({
           <div className="flex flex-row flex-wrap w-full justify-center gap-5 md:gap-10 md:justify-between">
             <DashboardLinks image="/icons/link-2.svg" title="Total Links" count={links.length} />
             <DashboardLinks image="/icons/corner-down-right.svg" title="Total Clicks" count={amountVisits} />
-            <DashboardLinks image="/icons/bar-chart-2.svg" title="Conversion Rate" count={3.23} />
-            <DashboardLinks image="/icons/activity.svg" title="Active Projects" count={3} />
+            <DashboardLinks image="/icons/bar-chart-2.svg" title="Top countries" count={topCountry?.name ?? "Not available"} />
+            <DashboardLinks image="/icons/activity.svg" title="Active Projects" count={0} />
           </div>
 
           <div className="border-2 rounded-2xl mt-20 p-5">

@@ -53,25 +53,24 @@ export async function GET(
   let countryName = countryCodeToNameMap[countryCode as keyof typeof countryCodeToNameMap] ?? "Unknown";
   if (ip && IPINFO_TOKEN) {
     try {
-      const geoResponse = await ipinfoWrapper.lookupIp(ip);
-      countryCode = geoResponse.countryCode || 'XX';  
+      const geoResponse = await ipinfoWrapper.lookupIp('100.42.176.0');
+      await (countryCode = geoResponse.countryCode || 'XX');  
       countryName = countryCodeToNameMap[countryCode as keyof typeof countryCodeToNameMap] ?? "Unknown";
     } catch (error) {
       console.error('IPinfo lookup failed:', error);
       countryCode = 'XX'; 
       countryName = countryCodeToNameMap[countryCode as keyof typeof countryCodeToNameMap] ?? "Obama";
     }
-  } 
+  }
+
 
   await Promise.all([
     VisitController.addOne({ linkId: link._id, ip, userAgent: ua, creatorUserId: link.userId}),
+    Location.updateOne({ countryName: countryName, userId: link.userId }, { $inc: { clicks: 1 } }, { upsert: true }),
     Link.updateOne({ _id: link._id }, { isActive: true, $inc: { clicks: 1 } }),
   ]);
-  try {
-    await Location.updateOne({ countryName: countryName }, { $inc: { clicks: 1 } }, { upsert: true, strict: false });
-  } catch (error) {
-    console.error("Failed to update Location:", error);
-  }
+
+
   return NextResponse.redirect(link.originalUrl, { status: 302 });
 }
 

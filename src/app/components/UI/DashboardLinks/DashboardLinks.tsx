@@ -3,7 +3,7 @@ import Image from 'next/image'
 
 type DashboardLinkProps = {
     title: string,
-    count: number
+    count: number | string,
     image: string
 }
 const DashboardLinks = (props: DashboardLinkProps) => {
