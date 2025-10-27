@@ -3,6 +3,7 @@ import TextType from "../UI/TextType/TextType";
 import InteractivePart from "../InteractivePart/InteractivePart";
 
 const Main = () => {
+  
   return (
     <div className="container mx-auto px-4">
       <div className="flex w-full flex-col items-center">

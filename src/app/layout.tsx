@@ -10,8 +10,9 @@ import { getSession } from "@/lib/auth/auth";
 import Link from "next/link";
 
 const montserrat = Montserrat({
-  variable: "--font-montserrat",
   subsets: ["latin"],
+  display: "swap",     // шрифт не вызывает CLS
+  variable: "--font-main", // добавит CSS-переменную
   weight: ["400", "500", "600", "700"],
 });
 
@@ -73,8 +74,8 @@ export default async function RootLayout({
   const initialSession = s ? { id: s.id, email: s.email, name: s.name } : null;
 
   return (
-    <html lang="en">
-      <body className={`${montserrat.variable} antialiased`}>
+    <html lang="en" className={montserrat.variable}>
+      <body className="font-main leading-[1.75rem]">
         <Analytics />
         <SpeedInsights/>
         <AppProviders initialSession={initialSession}>

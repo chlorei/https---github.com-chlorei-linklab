@@ -4,7 +4,6 @@ import React, { useMemo, useState } from "react";
 import TextType from "@/app/components/UI/TextType/TextType";
 import RecentLinks from "@/app/components/UI/RecentLinks/RecentLinks";
 import Link from "next/link";
-import Image from "next/image";
 
 
 type LinkItem = {
@@ -54,25 +53,14 @@ export default function LinksClient({ links }: { links: LinkItem[] }) {
           />
         </div>
 
-        <div
-          className="flex items-center justify-center
-                     w-full sm:w-1/3 lg:w-1/5
-                     text-primary-text bg-bg-primary rounded-2xl border p-2 font-semibold
-                     transition hover:bg-hover-primary hover:text-hover-button-text hover:shadow-lg hover:-translate-y-0.5
-                     active:translate-y-0 active:shadow-md
-                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2"
-        >
-          <Link href="/" className="relative flex items-center justify-center w-full h-full p-2 text-center">
-            <Image
-              src="/icons/plus (2).svg"
-              alt="Create Icon"
-              width={22}
-              height={22}
-              className="absolute left-4"
-            />
-            <h3 className="w-full text-center">Create more</h3>
-          </Link>
-        </div>
+        <div className="flex mt-5 justify-center justfiy-self-center w-full sm:w-1/3 lg:w-1/5 self-center rounded-2xl border p-2 font-semibold
+                            transition hover:bg-hover-button-bg hover:text-hover-button-text hover:shadow-lg hover:-translate-y-0.5
+                            active:translate-y-0 active:shadow-md
+                            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/60 focus-visible:ring-offset-2">
+              <Link href="/" prefetch={false} className="w-full h-full text-center">
+                Create more links
+              </Link>
+            </div>
       </div>
 
       <input

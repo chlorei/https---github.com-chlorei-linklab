@@ -62,7 +62,7 @@ export default function DashboardClient({
           <div className="flex flex-row flex-wrap w-full justify-center gap-5 md:gap-10 md:justify-between">
             <DashboardLinks image="/icons/link-2.svg" title="Total Links" count={links.length} />
             <DashboardLinks image="/icons/corner-down-right.svg" title="Total Clicks" count={amountVisits} />
-            <DashboardLinks image="/icons/bar-chart-2.svg" title="Top countries" count={topCountry?.name ?? "Not available"} />
+            <DashboardLinks image="/icons/globe.svg" title="Top countries" count={topCountry?.name ?? "Not available"} />
             <DashboardLinks image="/icons/activity.svg" title="Active Projects" count={0} />
           </div>
 
