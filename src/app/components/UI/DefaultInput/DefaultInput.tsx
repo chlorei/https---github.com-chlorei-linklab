@@ -9,13 +9,14 @@ type DefaultInputProps = {
 
 const DefaultInput = ({ name, type, value, placeholder, autoComplete }: DefaultInputProps) => {
   return (
-    <input
+    <input      
+                onChange={() => console.log("")}
                 name={name}
                 type={type}
                 value={value}
                 placeholder={placeholder}
                 autoComplete={autoComplete}
-                className="h-11 w-full mt-2 rounded-2xl border px-4 outline-none transition
+                className="h-11 w-7/8 mt-2 rounded-2xl border px-4 outline-none transition
                            focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
               />
   )

@@ -32,16 +32,11 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
           p-8 animate-[modalIn_0.25s_ease-out_forwards]
         "
       >
-        {/* верхняя панель */}
         <div className="flex items-start justify-between mb-4">
 
           <div>
             <h1 className="text-2xl">{title}</h1>
           </div>
-          
-          {/* <EditInput title={title ?? ""} /> */}
-          {/* <input className="p-3 text-2xl font-semibold rounded-2xl" type="text" value={title}/> */}
-          {/* {title && <h2 className="text-2xl font-semibold">{title}</h2>} */}
           <button
             onClick={onClose}
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-500 hover:text-gray-800 dark:text-gray-400"

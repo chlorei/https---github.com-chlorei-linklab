@@ -1,39 +1,24 @@
-import React, { useState } from "react";
+const ColorSwitcher = ({
+  value,
+  onChange,
+  colors,
+}: {
+  value: string; onChange: (c: string) => void; colors: string[];
+}) => (
+  <div className="grid grid-cols-5 gap-2">
+    {colors.map((hex) => (
+      <button
+        key={hex}
+        type="button"
+        onClick={() => onChange(hex)}
+        title={hex}
+        className={`h-10 w-10 rounded-2xl border transition ring-offset-2 focus:outline-none focus:ring-2 focus:ring-black/60 ${
+          value === hex ? "ring-2 ring-black/60" : ""
+        }`}
+        style={{ backgroundColor: hex }}
+      />
+    ))}
+  </div>
+);
 
-
-type ColorPickerProps = {
-  value?: string;
-  colors: string[];
-  onChange?: (color: string) => void;
-};
-
-export default function ColorPicker({ value, onChange, colors }: ColorPickerProps) {
-  const [selected, setSelected] = useState(value || colors[0]);
-
-  const handleSelect = (color: string) => {
-    setSelected(color);
-    onChange?.(color);
-  };
-
-
-  return (
-    <div className="mt-4">
-      {/* <p className="text-sm font-medium text-gray-600 mb-2">Project Color</p> */}
-      <div className="flex flex-wrap gap-3">
-        {colors.map((color) => (
-          <button
-            key={color}
-            onClick={() => handleSelect(color)}
-            className={`w-9 h-9 rounded-xl transition
-                           focus:ring-2 focus:ring-black/60 focus:ring-offset-2  duration-150 border-2 ${
-              selected === color
-                ? "border-black scale-105"
-                : "border-transparent hover:scale-105"
-            }`}
-            style={{ backgroundColor: color }}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
+export default ColorSwitcher

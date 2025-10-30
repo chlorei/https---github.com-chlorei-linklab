@@ -1,11 +1,8 @@
 // components/FolderCard.tsx
 import React, { useEffect, useState } from "react";
-// import Link from "next/link";
 import Modal from "../ProjectModal/ProjectModal";
-import ModalFeatureCard from "../UI/ModalFeatureCard/ModalFeatureCard";
-import DefaultInput from "../UI/DefaultInput/DefaultInput";
-// import ColorPicker from "../UI/ColorPicker/ColorPicker";
-
+import colorMap from "@/app/utils/colorMap";
+import ColorPicker from "../UI/ColorPicker/ColorPicker";
 type FolderCardProps = {
   href?: string;
   title: string;
@@ -15,73 +12,62 @@ type FolderCardProps = {
   color?: keyof typeof colorMap;
 };
 
-const colorMap = {
-  blue: {
-    bar: "from-[#A5D8FF] to-[#74C0FC]",
-    iconBg: "bg-[#A5D8FF]/40",
-    icon: "fill-[#1C7ED6]",
-  },
-  peach: {
-    bar: "from-[#FFD8A8] to-[#FFC078]",
-    iconBg: "bg-[#FFD8A8]/40",
-    icon: "fill-[#E8590C]",
-  },
-  lavender: {
-    bar: "from-[#D0BFFF] to-[#B197FC]",
-    iconBg: "bg-[#D0BFFF]/40",
-    icon: "fill-[#6741D9]",
-  },
-  beige: {
-    bar: "from-[#FFE8CC] to-[#FFD8A8]",
-    iconBg: "bg-[#FFE8CC]/40",
-    icon: "fill-[#D9480F]",
-  },
-  pink: {
-    bar: "from-[#F3C0C6] to-[#FAA2C1]",
-    iconBg: "bg-[#F3C0C6]/40",
-    icon: "fill-[#D6336C]",
-  },
-  yellow: {
-    bar: "from-[#FFF3BF] to-[#FFE066]",
-    iconBg: "bg-[#FFF3BF]/40",
-    icon: "fill-[#F08C00]",
-  },
-  teal: {
-    bar: "from-[#96E6B3] to-[#63E6BE]",
-    iconBg: "bg-[#96E6B3]/40",
-    icon: "fill-[#0CA678]",
-  },
-  mint: {
-    bar: "from-[#B2F2BB] to-[#96F2D7]",
-    iconBg: "bg-[#B2F2BB]/40",
-    icon: "fill-[#20C997]",
-  },
-  gray: {
-    bar: "from-[#C5D8E8] to-[#ADB5BD]",
-    iconBg: "bg-[#C5D8E8]/40",
-    icon: "fill-[#495057]",
-  },
-} as const;
+
+// рядом с твоими массивами
+const existingLinks = [
+  { id: "1", slug: "black-friday", url: "https://example.com/bf", clicks: 532 },
+  { id: "2", slug: "referral",     url: "https://example.com/ref", clicks: 219 },
+  { id: "3", slug: "landing-alt",  url: "https://example.com/alt", clicks: 94  },
+  { id: "4", slug: "youtube-ad",   url: "https://example.com/yt",  clicks: 130 },
+];
+
 
 export default function FolderCard({
   title,
   description,
   linksCount = 0,
   clicks = 0,
-  color = "mint",
+  color = "blue",
 }: FolderCardProps) {
 
 
-  // const [colorSwitcher, setColorSwitcher] = useState<keyof typeof colorMap>(color);
+
+
+const [cardTitle, setCardTitle] = useState<string>(title);
+const [cardDescription, setCardDescription] = useState<string>(description ?? "");
+const hexFromIconBg = (iconBg: string) =>
+  iconBg.match(/#([0-9A-Fa-f]{3,6})/)?.[0] ?? "";
+
+
+
+useEffect(() => {
+  setColorSwitcher(hexFromIconBg(colorMap[color].iconBg) || colors[0]);
+}, [color]);
   const c = colorMap[color];
+  
   const colors = Object.values(colorMap).map(col => col.iconBg.match(/#([0-9A-Fa-f]{3,6})/)?.[0] ?? "");
   const [open, setOpen] = useState<boolean>(false);
-  console.log("1:", colors[0]);
-  console.log("2:", colors[1]);
-  console.log("3:", colors[2]);
-  console.log("4:", colors[3]); 
 
-  // ESC — закрытие
+  const initialHex = hexFromIconBg(colorMap[color].iconBg) || colors[0];
+const [colorSwitcher, setColorSwitcher] = useState(initialHex);
+
+
+
+function shadeHex(hex: string, percent: number) {
+  const m = hex.replace("#",""); 
+  if (![3,6].includes(m.length)) return hex;
+  const full = m.length === 3 ? m.split("").map(ch => ch+ch).join("") : m;
+  const n = (i: number) => {
+    const v = parseInt(full.slice(i, i+2), 16);
+    const nv = Math.min(255, Math.max(0, Math.round(v + (percent/100)*255)));
+    return nv.toString(16).padStart(2,"0");
+  };
+  return `#${n(0)}${n(2)}${n(4)}`;
+}
+
+
+
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
@@ -90,7 +76,51 @@ export default function FolderCard({
   }, [open]);
 
 
-  
+  useEffect(() => {
+    console.log("colorSwitcher:", colorSwitcher);
+  }, [colorSwitcher]);
+
+
+
+const [tab, setTab] = useState<"links" | "analytics">("links");
+
+const SegTabs = ({
+  value,
+  onChange,
+}: { value: "links" | "analytics"; onChange: (v: "links" | "analytics") => void }) => (
+  <div className="inline-flex rounded-2xl bg-gray-100 p-1 text-sm font-medium">
+    {(["links", "analytics"] as const).map((k) => (
+      <button
+        key={k}
+        type="button"
+        onClick={() => onChange(k)}
+        className={`px-4 py-2 rounded-2xl transition flex items-center gap-2 ${
+          value === k ? "bg-white shadow-sm" : "text-gray-600 hover:text-gray-800"
+        }`}
+      >
+        {k === "links" ? (
+          <svg width="16" height="16" viewBox="0 0 24 24"><path d="M3.9 12a5 5 0 0 1 5-5h3v2h-3a3 3 0 0 0 0 6h3v2h-3a5 5 0 0 1-5-5Zm6-1h4v2h-4v-2Zm5.2-4h3a5 5 0 1 1 0 10h-3v-2h3a3 3 0 1 0 0-6h-3V7Z" fill="currentColor"/></svg>
+        ) : (
+          <svg width="16" height="16" viewBox="0 0 24 24"><path d="M4 13h3v7H4v-7Zm6-6h3v13h-3V7Zm6 3h3v10h-3V10Z" fill="currentColor"/></svg>
+        )}
+        {k === "links" ? "Links" : "Analytics"}
+      </button>
+    ))}
+  </div>
+);
+
+const StatCard = ({ title, value, sub }: { title: string; value: string | number; sub?: string }) => (
+  <div className="flex-1 min-w-[210px] rounded-2xl border bg-white p-5">
+    <div className="text-sm text-gray-500">{title}</div>
+    <div className="mt-1 text-4xl font-bold tracking-tight">{value}</div>
+    {sub && <div className="mt-1 text-xs text-emerald-600">{sub}</div>}
+  </div>
+);
+
+
+
+
+
   return (
     <div
       onClick={() => setOpen(true)}
@@ -103,27 +133,41 @@ export default function FolderCard({
         hover:-translate-y-0.5 overflow-hidden
       "
       role="article"
-      aria-label={title}
+      aria-label={title}    
     >
       {/* top color bar */}
-      <div className={`pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${c.bar}`} />
+      <div
+  className={`pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${c.bar}`}
+  style={{
+    backgroundImage: `linear-gradient(to right, ${shadeHex(colorSwitcher, 25)}, ${shadeHex(colorSwitcher, -5)})`
+  }}
+/>
 
       <div className="p-5 flex flex-col flex-1 justify-between">
         <div className="flex items-start gap-3">
           {/* folder icon bubble */}
-          <div className={`h-10 w-10 ${c.iconBg} rounded-xl grid place-items-center shrink-0`}>
-            <svg width="22" height="22" viewBox="0 0 24 24" className={c.icon} aria-hidden="true">
-              <path d="M3 6.75A1.75 1.75 0 0 1 4.75 5h4.086c.464 0 .908.184 1.236.512l1.172 1.176c.328.329.772.512 1.236.512H19.25A1.75 1.75 0 0 1 21 9v8.25A1.75 1.75 0 0 1 19.25 19H4.75A1.75 1.75 0 0 1 3 17.25V6.75Z" />
-            </svg>
-          </div>
+          <div
+  className={`h-10 w-10 ${c.iconBg} rounded-xl grid place-items-center shrink-0`}
+  style={{ backgroundColor: colorSwitcher }}
+>
+  <svg
+    width="22" height="22" viewBox="0 0 24 24"
+    className={c.icon}
+    aria-hidden="true"
+    style={{ fill: shadeHex(colorSwitcher, -35) }}
+  >
+      <path d="M3 6.75A1.75 1.75 0 0 1 4.75 5h4.086c.464 0 .908.184 1.236.512l1.172 1.176c.328.329.772.512 1.236.512H19.25A1.75 1.75 0 0 1 21 9v8.25A1.75 1.75 0 0 1 19.25 19H4.75A1.75 1.75 0 0 1 3 17.25V6.75Z" />
+
+  </svg>
+</div>
 
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
-              {title}
+              {cardTitle}
             </h3>
-            {description && (
+            {cardDescription && (
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                {description}
+                {cardDescription}
               </p>
             )}
           </div>
@@ -162,28 +206,270 @@ export default function FolderCard({
         </div>
       </div>
 
-        <Modal open={open} onClose={() => setOpen(false)} title={title}>
-            <div className="flex flex-wrap mb-10 gap-5 justify-between">
-              <ModalFeatureCard title="Total Links" count={18} image="/icons/x.svg" />
-              <ModalFeatureCard title="Total Links" count={18} image="/icons/x.svg" />
-              <ModalFeatureCard title="Total Links" count={18} image="/icons/x.svg" />
-              
+       
+
+      <Modal open={open} onClose={() => setOpen(false)} title={cardTitle}>
+  {/* контейнер модалки */}
+        <div className="max-h-[60vh] overflow-y-auto z-index-999999">
+          {/* Шапка: иконка папки + заголовок + сабтайтл + табы */}
+          <div className="flex items-start justify-between gap-4 p-2">
+            <div className="flex items-center gap-3">
+              <div
+                className="h-12 w-12 rounded-2xl grid place-items-center text-white shadow-md"
+                style={{ background: colorSwitcher }}
+              >
+                {/* folder icon */}
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M10 4l2 2h8a2 2 0 0 1 2 2v9a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h5z"/>
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold leading-tight">{cardTitle || "Project"}</h2>
+                <p className="text-gray-500 -mt-0.5">
+                  {description || "Marketing campaign links for the new product launch"}
+                </p>
+              </div>
             </div>
-            <div className="flex flex-col border p-3 rounded-2xl">
-              <h3 className="text-l font-semibold mb-4">Project Settings</h3>
-              <DefaultInput name="title" value={title ?? ""}  type="text" placeholder="Title" autoComplete="off" />
-              <DefaultInput name="description" value={description ?? ""}  type="text" placeholder="Descriptions" autoComplete="off" />
-              {/* <ColorPicker colors={colors} value={color} onChange={setColorSwitcher} className="mt-5" /> */}
+
+            {/* Tabs */}
+            <SegTabs value={tab} onChange={setTab} />
+          </div>
+
+          {/* Статы под шапкой */}
+          {tab === "links" ? (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-2">
+              <StatCard title="Total Links" value={3} />
+              <StatCard title="Total Clicks" value={2847} />
+              <StatCard title="Avg. Clicks/Link" value={949} />
             </div>
-        {/* <div className="mt-6 flex justify-end">
-          <button
-            onClick={() => setOpen(false)}
-            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
-          >
-            Закрыть
-          </button>
-        </div> */}
-      </Modal>  
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-2">
+              <StatCard title="Total Clicks" value="2,847" sub="+12% from last week" />
+              <StatCard title="Avg. Daily" value={407} />
+              <StatCard title="Active Links" value={3} />
+            </div>
+          )}
+
+          {/* LINKS TAB */}
+          {tab === "links" && (
+            <div className="mt-6 space-y-6 px-2">
+              {/* Project Settings */}
+              <div className="rounded-2xl border p-4">
+                <h3 className="text-lg font-semibold mb-4">Project Settings</h3>
+
+                <div className="flex flex-col gap-4 md:flex-row">
+                  <input
+                    name="Title"
+                    value={cardTitle}
+                    onChange={(e) => setCardTitle(e.target.value)}
+                    placeholder="Project Name"
+                    autoComplete="off"
+                    className="h-11 w-full rounded-2xl border px-4 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
+                  />
+                  <div className="min-w-[220px]">
+                    <div className="mb-2 text-sm text-gray-600">Project Color</div>
+                    <ColorPicker
+                      value={colorSwitcher}
+                      onChange={setColorSwitcher}
+                      colors={colors}
+                    />
+                  </div>
+                </div>
+
+                <textarea
+                  name="description"
+                  value={cardDescription ?? ""}
+                  onChange={(e) => setCardDescription(e.target.value)}
+                  placeholder="Description"
+                  autoComplete="off"
+                  className="mt-4 min-h-[100px] max-h-[320px] w-full rounded-2xl border px-4 py-2 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2 resize-y"
+                />
+              </div>
+
+              {/* Add New Link */}
+              <div className="rounded-2xl border p-4">
+                <h3 className="text-lg font-semibold mb-3">Add New Link</h3>
+                <div className="flex flex-col gap-3 md:flex-row">
+                  <input
+                    placeholder="https://your-long-url.com"
+                    className="h-11 w-full rounded-2xl border px-4 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
+                  />
+                  <input
+                    placeholder="custom-slug"
+                    className="h-11 w-full md:max-w-[260px] rounded-2xl border px-4 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
+                  />
+                  <button
+                    type="button"
+                    className="h-11 px-5 rounded-2xl bg-black text-white hover:bg-black/90 transition"
+                  >
+                    + Add
+                  </button>
+                </div>
+              </div>
+              {/* Add From Existing Links */}
+      <div className="rounded-2xl border p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-semibold">Add From Existing Links</h3>
+            <p className="text-sm text-gray-500">Выберите уже созданные шорт-ссылки и добавьте их в проект.</p>
+          </div>
+          <div className="hidden md:flex items-center gap-2">
+            <input
+              placeholder="Search by slug or URL"
+              className="h-10 w-[260px] rounded-2xl border px-4 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
+            />
+            <select className="h-10 rounded-2xl border px-3 outline-none">
+              <option>Sort: Most clicks</option>
+              <option>Sort: Least clicks</option>
+              <option>Sort: A–Z</option>
+              <option>Sort: Z–A</option>
+            </select>
+          </div>
+        </div>
+
+        {/* лист с чекбоксами */}
+        <div className="mt-4 rounded-xl border bg-white">
+          <div className="grid grid-cols-[40px_1.2fr_2fr_140px] gap-4 text-sm text-gray-500 px-4 py-3">
+            <div />
+            <div>Short Link</div>
+            <div>Original URL</div>
+            <div className="text-right">Clicks</div>
+          </div>
+          <div className="border-t">
+            {existingLinks.map((r) => (
+              <div
+                key={r.id}
+                className="grid grid-cols-[40px_1.2fr_2fr_140px] gap-4 items-center px-4 py-3 hover:bg-gray-50"
+              >
+                <div>
+                  <input
+                    type="checkbox"
+                    className="size-5 rounded-md border-gray-300"
+                    // без логики — просто визуал
+                    onChange={() => {}}
+                  />
+                </div>
+                <div className="font-medium">rld.bio/{r.slug}</div>
+                <div className="truncate text-gray-600">{r.url}</div>
+                <div className="text-right">
+                  <span className="rounded-xl bg-gray-100 px-2 py-1 text-sm font-medium">{r.clicks}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* футер действий (визуал) */}
+        <div className="mt-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <span className="rounded-lg border px-2 py-1">0 selected</span>
+            <span className="hidden sm:inline">— выберите ссылки выше</span>
+          </div>
+          <div className="flex gap-2">
+            <button className="px-4 py-2 rounded-2xl border hover:bg-gray-50 transition">Cancel</button>
+            <button className="px-4 py-2 rounded-2xl bg-black text-white hover:bg-black/90 transition">Add Selected</button>
+          </div>
+        </div>
+      </div>
+
+              {/* Links Table */}
+              <div className="rounded-2xl border">
+                <div className="p-4 text-lg font-semibold">Links in this Project (3)</div>
+                <div className="border-t px-4 pb-4">
+                  <div className="grid grid-cols-[1.2fr_2fr_120px] gap-4 text-sm text-gray-500 px-2 pb-2">
+                    <div>Short Link</div>
+                    <div>Original URL</div>
+                    <div className="text-right">Clicks</div>
+                  </div>
+
+                  {[
+                    { slug: "product", url: "https://example.com/products/amazing-product", clicks: 847 },
+                    { slug: "launch", url: "https://example.com/launch", clicks: 1200 },
+                    { slug: "promo", url: "https://example.com/promo", clicks: 800 },
+                  ].map((r) => (
+                    <div
+                      key={r.slug}
+                      className="grid grid-cols-[1.2fr_2fr_120px] gap-4 items-center rounded-xl px-2 py-3 hover:bg-gray-50"
+                    >
+                      <div className="font-medium">rld.bio/{r.slug}</div>
+                      <div className="truncate text-gray-600">{r.url}</div>
+                      <div className="text-right">
+                        <span className="rounded-xl bg-gray-100 px-2 py-1 text-sm font-medium">{r.clicks}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ANALYTICS TAB */}
+          {tab === "analytics" && (
+            <div className="mt-6 space-y-6 px-2">
+              {/* Clicks Over Time (простая точечная диаграмма-заглушка) */}
+              <div className="rounded-2xl border p-4">
+                <h3 className="text-lg font-semibold mb-1">Clicks Over Time</h3>
+                <p className="text-sm text-gray-500 mb-4">Daily click performance for the last 7 days</p>
+                <div className="h-56 w-full rounded-xl bg-gradient-to-b from-white to-gray-50 border grid place-items-center">
+                  {/* тут можно подключить реальный чартист/ричартс позже */}
+                  <div className="text-gray-400 text-sm">[chart placeholder]</div>
+                </div>
+              </div>
+
+              {/* Link Performance (бар-чарт-заглушка) + Top Links */}
+              <div className="rounded-2xl border p-4">
+                <h3 className="text-lg font-semibold mb-3">Link Performance</h3>
+                <div className="h-56 w-full rounded-xl border bg-white grid grid-cols-3 gap-6 place-items-end p-6">
+                  <div className="w-full h-[220px] bg-black rounded-xl" />
+                  <div className="w-full h-[260px] bg-black rounded-xl" />
+                  <div className="w-full h-[200px] bg-black rounded-xl" />
+                </div>
+
+                <div className="mt-6">
+                  <h4 className="font-semibold mb-2">Top Performing Links</h4>
+                  <div className="grid grid-cols-[80px_1.3fr_120px] gap-3 text-sm text-gray-500 px-1 pb-2">
+                    <div>Rank</div>
+                    <div>Short Link</div>
+                    <div className="text-right">Clicks</div>
+                  </div>
+
+                  {[
+                    { rank: "#1", slug: "rld.bio/launch", clicks: "1,200", share: "42%" },
+                    { rank: "#2", slug: "rld.bio/product", clicks: "847", share: "30%" },
+                    { rank: "#3", slug: "rld.bio/promo", clicks: "800", share: "28%" },
+                  ].map((r) => (
+                    <div
+                      key={r.rank}
+                      className="grid grid-cols-[80px_1.3fr_120px] gap-3 items-center rounded-xl px-2 py-3 hover:bg-gray-50"
+                    >
+                      <div className="font-medium">{r.rank}</div>
+                      <div className="font-medium">{r.slug}</div>
+                      <div className="text-right">
+                        <span className="rounded-xl bg-gray-100 px-2 py-1 text-sm font-medium">{r.clicks}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Footer (опционально) */}
+          <div className="flex justify-end gap-3 px-2 py-4">
+            <button
+              onClick={() => setOpen(false)}
+              className="px-4 py-2 rounded-2xl border hover:bg-gray-50 transition"
+            >
+              Close
+            </button>
+            <button className="px-4 py-2 rounded-2xl bg-black text-white hover:bg-black/90 transition">
+              Save
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      
     </div>
   );
 }
