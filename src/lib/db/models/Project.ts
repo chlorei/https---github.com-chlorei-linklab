@@ -13,7 +13,7 @@ export interface ProjectDoc {
 
 const ProjectSchema = new Schema<ProjectDoc>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true, unique: true},
     title: { type: String, required: true, trim: true },
     description: { type: String },
     color: { type: String, default: "#4F7BFF" },

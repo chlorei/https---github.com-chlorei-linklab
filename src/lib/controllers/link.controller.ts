@@ -1,15 +1,21 @@
 import * as LinkService from "@/lib/services/link.service";
 
 interface CreateLinkBody {
-  userId: null;
+  userId?: string | null;        // ← а не "null" как тип
   originalUrl?: string;
+  projectId?: string | null;     // ← явно допускаем null
 }
 
 export async function create(body: CreateLinkBody, origin: string) {
   const originalUrl = body?.originalUrl?.toString().trim();
   if (!originalUrl) throw new Error("originalUrl is required");
 
-  const link = await LinkService.createShortLink(originalUrl, body?.userId ?? null);
+  // НИКАКИХ "" — только валидный id или null/undefined
+  const userId    = body?.userId ?? null;
+  const projectId = body?.projectId && body.projectId.trim() !== "" ? body.projectId : null;
+
+  const link = await LinkService.createShortLink(originalUrl, userId, projectId);
+
   const shortUrl = `${origin}/${link.shortId}`;
   return { ok: true, link, shortUrl };
 }

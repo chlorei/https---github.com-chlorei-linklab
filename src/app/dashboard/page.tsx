@@ -19,7 +19,10 @@ export default async function DashboardPage() {
     getLast7DaysVisitsByUser(s.id, "Europe/Berlin", 7),
     getAllLocationsByUserId(s.id),
   ]);
-  console.log("Locations bundle in DashboardPage:", locationsBundle);
+  console.log("Locations bundle:", locationsBundle);
+  console.log("links", links);
+  console.log("visitsCount", visitsCount);
+  console.log("activity", activity);
   const { all: locations, topCountry } = locationsBundle;
 
   return (

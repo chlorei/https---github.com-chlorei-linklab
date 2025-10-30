@@ -1,19 +1,22 @@
 // components/FolderCard.tsx
+"use client";
+
 import React, { useEffect, useState } from "react";
 import Modal from "../ProjectModal/ProjectModal";
 import colorMap from "@/app/utils/colorMap";
-import ColorPicker from "../UI/ColorPicker/ColorPicker";
+
+type ColorName = keyof typeof colorMap;
+
 type FolderCardProps = {
   href?: string;
   title: string;
   description?: string;
   linksCount?: number;
   clicks?: number;
-  color?: keyof typeof colorMap;
+  color: ColorName; // храним имя цвета
 };
 
-
-// рядом с твоими массивами
+// демо-список
 const existingLinks = [
   { id: "1", slug: "black-friday", url: "https://example.com/bf", clicks: 532 },
   { id: "2", slug: "referral",     url: "https://example.com/ref", clicks: 219 },
@@ -21,53 +24,74 @@ const existingLinks = [
   { id: "4", slug: "youtube-ad",   url: "https://example.com/yt",  clicks: 130 },
 ];
 
+// утилита для затемнения/осветления hex
+function shadeHex(hex: string, percent: number) {
+  const m = hex.replace("#", "");
+  if (![3, 6].includes(m.length)) return hex;
+  const full = m.length === 3 ? m.split("").map(ch => ch + ch).join("") : m;
+  const comp = (i: number) => {
+    const v = parseInt(full.slice(i, i + 2), 16);
+    const nv = Math.min(255, Math.max(0, Math.round(v + (percent / 100) * 255)));
+    return nv.toString(16).padStart(2, "0");
+  };
+  return `#${comp(0)}${comp(2)}${comp(4)}`;
+}
 
-export default function FolderCard({
+// свотчи по имени
+function ColorSwatchesByName({
+  value,
+  onChange,
+  names,
+}: {
+  value: ColorName;
+  onChange: (c: ColorName) => void;
+  names: ColorName[];
+}) {
+  return (
+    <div className="grid grid-cols-5 gap-2">
+      {names.map((name) => {
+        const hex = colorMap[name].mainColor;
+        const active = value === name;
+        return (
+          <button
+            key={name}
+            type="button"
+            onClick={() => onChange(name)}
+            title={name}
+            className={`h-10 w-10 rounded-2xl border transition ring-offset-2 focus:outline-none focus:ring-2 focus:ring-black/60 ${
+              active ? "ring-2 ring-black/60" : ""
+            }`}
+            style={{ backgroundColor: hex }}
+            aria-pressed={active}
+            aria-label={name}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+export default function ProjectCard({
   title,
   description,
   linksCount = 0,
   clicks = 0,
   color = "blue",
 }: FolderCardProps) {
-
-
-
-
-const [cardTitle, setCardTitle] = useState<string>(title);
-const [cardDescription, setCardDescription] = useState<string>(description ?? "");
-const hexFromIconBg = (iconBg: string) =>
-  iconBg.match(/#([0-9A-Fa-f]{3,6})/)?.[0] ?? "";
-
-
-
-useEffect(() => {
-  setColorSwitcher(hexFromIconBg(colorMap[color].iconBg) || colors[0]);
-}, [color]);
-  const c = colorMap[color];
-  
-  const colors = Object.values(colorMap).map(col => col.iconBg.match(/#([0-9A-Fa-f]{3,6})/)?.[0] ?? "");
+  const [cardTitle, setCardTitle] = useState<string>(title);
+  const [cardDescription, setCardDescription] = useState<string>(description ?? "");
   const [open, setOpen] = useState<boolean>(false);
+  const [tab, setTab] = useState<"links" | "analytics">("links");
 
-  const initialHex = hexFromIconBg(colorMap[color].iconBg) || colors[0];
-const [colorSwitcher, setColorSwitcher] = useState(initialHex);
+  // имя цвета в состоянии
+  const [colorName, setColorName] = useState<ColorName>(color);
+  useEffect(() => setColorName(color), [color]);
 
+  // дериваты из карты
+  const palette = colorMap[colorName] ?? colorMap.blue;
+  const mainHex = palette.mainColor;
 
-
-function shadeHex(hex: string, percent: number) {
-  const m = hex.replace("#",""); 
-  if (![3,6].includes(m.length)) return hex;
-  const full = m.length === 3 ? m.split("").map(ch => ch+ch).join("") : m;
-  const n = (i: number) => {
-    const v = parseInt(full.slice(i, i+2), 16);
-    const nv = Math.min(255, Math.max(0, Math.round(v + (percent/100)*255)));
-    return nv.toString(16).padStart(2,"0");
-  };
-  return `#${n(0)}${n(2)}${n(4)}`;
-}
-
-
-
-
+  // esc закрывает модалку
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
@@ -75,91 +99,78 @@ function shadeHex(hex: string, percent: number) {
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
+  const colorNames = Object.keys(colorMap) as ColorName[];
 
-  useEffect(() => {
-    console.log("colorSwitcher:", colorSwitcher);
-  }, [colorSwitcher]);
+  const SegTabs = ({
+    value,
+    onChange,
+  }: { value: "links" | "analytics"; onChange: (v: "links" | "analytics") => void }) => (
+    <div className="inline-flex rounded-2xl bg-gray-100 p-1 text-sm font-medium">
+      {(["links", "analytics"] as const).map((k) => (
+        <button
+          key={k}
+          type="button"
+          onClick={() => onChange(k)}
+          className={`px-4 py-2 rounded-2xl transition flex items-center gap-2 ${
+            value === k ? "bg-white shadow-sm" : "text-gray-600 hover:text-gray-800"
+          }`}
+        >
+          {k === "links" ? (
+            <svg width="16" height="16" viewBox="0 0 24 24"><path d="M3.9 12a5 5 0 0 1 5-5h3v2h-3a3 3 0 0 0 0 6h3v2h-3a5 5 0 0 1-5-5Zm6-1h4v2h-4v-2Zm5.2-4h3a5 5 0 1 1 0 10h-3v-2h3a3 3 0 1 0 0-6h-3V7Z" fill="currentColor"/></svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24"><path d="M4 13h3v7H4v-7Zm6-6h3v13h-3V7Zm6 3h3v10h-3V10Z" fill="currentColor"/></svg>
+          )}
+          {k === "links" ? "Links" : "Analytics"}
+        </button>
+      ))}
+    </div>
+  );
 
-
-
-const [tab, setTab] = useState<"links" | "analytics">("links");
-
-const SegTabs = ({
-  value,
-  onChange,
-}: { value: "links" | "analytics"; onChange: (v: "links" | "analytics") => void }) => (
-  <div className="inline-flex rounded-2xl bg-gray-100 p-1 text-sm font-medium">
-    {(["links", "analytics"] as const).map((k) => (
-      <button
-        key={k}
-        type="button"
-        onClick={() => onChange(k)}
-        className={`px-4 py-2 rounded-2xl transition flex items-center gap-2 ${
-          value === k ? "bg-white shadow-sm" : "text-gray-600 hover:text-gray-800"
-        }`}
-      >
-        {k === "links" ? (
-          <svg width="16" height="16" viewBox="0 0 24 24"><path d="M3.9 12a5 5 0 0 1 5-5h3v2h-3a3 3 0 0 0 0 6h3v2h-3a5 5 0 0 1-5-5Zm6-1h4v2h-4v-2Zm5.2-4h3a5 5 0 1 1 0 10h-3v-2h3a3 3 0 1 0 0-6h-3V7Z" fill="currentColor"/></svg>
-        ) : (
-          <svg width="16" height="16" viewBox="0 0 24 24"><path d="M4 13h3v7H4v-7Zm6-6h3v13h-3V7Zm6 3h3v10h-3V10Z" fill="currentColor"/></svg>
-        )}
-        {k === "links" ? "Links" : "Analytics"}
-      </button>
-    ))}
-  </div>
-);
-
-const StatCard = ({ title, value, sub }: { title: string; value: string | number; sub?: string }) => (
-  <div className="flex-1 min-w-[210px] rounded-2xl border bg-white p-5">
-    <div className="text-sm text-gray-500">{title}</div>
-    <div className="mt-1 text-4xl font-bold tracking-tight">{value}</div>
-    {sub && <div className="mt-1 text-xs text-emerald-600">{sub}</div>}
-  </div>
-);
-
-
-
-
+  const StatCard = ({ title, value, sub }: { title: string; value: string | number; sub?: string }) => (
+    <div className="flex-1 min-w-[210px] rounded-2xl border bg-white p-5">
+      <div className="text-sm text-gray-500">{title}</div>
+      <div className="mt-1 text-4xl font-bold tracking-tight">{value}</div>
+      {sub && <div className="mt-1 text-xs text-emerald-600">{sub}</div>}
+    </div>
+  );
 
   return (
     <div
       onClick={() => setOpen(true)}
       className="
         group relative flex flex-col
-        w-[280px] sm:w-[300px] lg:w-[320px] 
+        w-full max-w-[360px] sm:w-[calc(50%-12px)] md:w-[calc(33.333%-14px)] lg:w-[320px]
         rounded-2xl border border-gray-200/80 dark:border-white/10
         bg-white dark:bg-neutral-900
         shadow-sm hover:shadow-md transition-all duration-300 ease-out
         hover:-translate-y-0.5 overflow-hidden
       "
       role="article"
-      aria-label={title}    
+      aria-label={title}
     >
-      {/* top color bar */}
+      {/* верхняя цветная полоска */}
       <div
-  className={`pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${c.bar}`}
-  style={{
-    backgroundImage: `linear-gradient(to right, ${shadeHex(colorSwitcher, 25)}, ${shadeHex(colorSwitcher, -5)})`
-  }}
-/>
+        className="pointer-events-none absolute inset-x-0 top-0 h-1.5"
+        style={{
+          backgroundImage: `linear-gradient(to right, ${shadeHex(mainHex, 25)}, ${shadeHex(mainHex, -5)})`,
+        }}
+      />
 
       <div className="p-5 flex flex-col flex-1 justify-between">
         <div className="flex items-start gap-3">
-          {/* folder icon bubble */}
+          {/* иконка папки */}
           <div
-  className={`h-10 w-10 ${c.iconBg} rounded-xl grid place-items-center shrink-0`}
-  style={{ backgroundColor: colorSwitcher }}
->
-  <svg
-    width="22" height="22" viewBox="0 0 24 24"
-    className={c.icon}
-    aria-hidden="true"
-    style={{ fill: shadeHex(colorSwitcher, -35) }}
-  >
-      <path d="M3 6.75A1.75 1.75 0 0 1 4.75 5h4.086c.464 0 .908.184 1.236.512l1.172 1.176c.328.329.772.512 1.236.512H19.25A1.75 1.75 0 0 1 21 9v8.25A1.75 1.75 0 0 1 19.25 19H4.75A1.75 1.75 0 0 1 3 17.25V6.75Z" />
-
-  </svg>
-</div>
+            className="h-10 w-10 rounded-xl grid place-items-center shrink-0"
+            style={{ backgroundColor: mainHex }}
+          >
+            <svg
+              width="22" height="22" viewBox="0 0 24 24"
+              aria-hidden="true"
+              style={{ fill: shadeHex(mainHex, -35) }}
+            >
+              <path d="M3 6.75A1.75 1.75 0 0 1 4.75 5h4.086c.464 0 .908.184 1.236.512l1.172 1.176c.328.329.772.512 1.236.512H19.25A1.75 1.75 0 0 1 21 9v8.25A1.75 1.75 0 0 1 19.25 19H4.75A1.75 1.75 0 0 1 3 17.25V6.75Z" />
+            </svg>
+          </div>
 
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
@@ -172,7 +183,7 @@ const StatCard = ({ title, value, sub }: { title: string; value: string | number
             )}
           </div>
 
-          {/* menu button */}
+          {/* меню */}
           <button
             type="button"
             className="p-2 -mr-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700
@@ -187,7 +198,7 @@ const StatCard = ({ title, value, sub }: { title: string; value: string | number
           </button>
         </div>
 
-        {/* metrics */}
+        {/* метрики */}
         <div className="mt-4 flex items-center gap-6 text-sm text-gray-600 dark:text-gray-400">
           <div className="inline-flex items-center gap-1.5">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -206,19 +217,16 @@ const StatCard = ({ title, value, sub }: { title: string; value: string | number
         </div>
       </div>
 
-       
-
+      {/* Модалка */}
       <Modal open={open} onClose={() => setOpen(false)} title={cardTitle}>
-  {/* контейнер модалки */}
-        <div className="max-h-[60vh] overflow-y-auto z-index-999999">
-          {/* Шапка: иконка папки + заголовок + сабтайтл + табы */}
-          <div className="flex items-start justify-between gap-4 p-2">
+        <div className="max-h-[60vh] overflow-y-auto z-[999999]">
+          {/* header */}
+          <div className="flex flex-col sm:flex-row items-start justify-between gap-4 p-2">
             <div className="flex items-center gap-3">
               <div
                 className="h-12 w-12 rounded-2xl grid place-items-center text-white shadow-md"
-                style={{ background: colorSwitcher }}
+                style={{ background: mainHex }}
               >
-                {/* folder icon */}
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M10 4l2 2h8a2 2 0 0 1 2 2v9a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h5z"/>
                 </svg>
@@ -231,11 +239,10 @@ const StatCard = ({ title, value, sub }: { title: string; value: string | number
               </div>
             </div>
 
-            {/* Tabs */}
             <SegTabs value={tab} onChange={setTab} />
           </div>
 
-          {/* Статы под шапкой */}
+          {/* summary stats */}
           {tab === "links" ? (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-2">
               <StatCard title="Total Links" value={3} />
@@ -259,7 +266,7 @@ const StatCard = ({ title, value, sub }: { title: string; value: string | number
 
                 <div className="flex flex-col gap-4 md:flex-row">
                   <input
-                    name="Title"
+                    name="title"
                     value={cardTitle}
                     onChange={(e) => setCardTitle(e.target.value)}
                     placeholder="Project Name"
@@ -268,11 +275,15 @@ const StatCard = ({ title, value, sub }: { title: string; value: string | number
                   />
                   <div className="min-w-[220px]">
                     <div className="mb-2 text-sm text-gray-600">Project Color</div>
-                    <ColorPicker
-                      value={colorSwitcher}
-                      onChange={setColorSwitcher}
-                      colors={colors}
+
+                    <ColorSwatchesByName
+                      value={colorName}
+                      onChange={setColorName}
+                      names={colorNames}
                     />
+
+                    {/* имя цвета для Server Action / формы */}
+                    <input type="hidden" name="color" value={colorName} />
                   </div>
                 </div>
 
@@ -306,71 +317,65 @@ const StatCard = ({ title, value, sub }: { title: string; value: string | number
                   </button>
                 </div>
               </div>
-              {/* Add From Existing Links */}
-      <div className="rounded-2xl border p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h3 className="text-lg font-semibold">Add From Existing Links</h3>
-            <p className="text-sm text-gray-500">Выберите уже созданные шорт-ссылки и добавьте их в проект.</p>
-          </div>
-          <div className="hidden md:flex items-center gap-2">
-            <input
-              placeholder="Search by slug or URL"
-              className="h-10 w-[260px] rounded-2xl border px-4 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
-            />
-            <select className="h-10 rounded-2xl border px-3 outline-none">
-              <option>Sort: Most clicks</option>
-              <option>Sort: Least clicks</option>
-              <option>Sort: A–Z</option>
-              <option>Sort: Z–A</option>
-            </select>
-          </div>
-        </div>
 
-        {/* лист с чекбоксами */}
-        <div className="mt-4 rounded-xl border bg-white">
-          <div className="grid grid-cols-[40px_1.2fr_2fr_140px] gap-4 text-sm text-gray-500 px-4 py-3">
-            <div />
-            <div>Short Link</div>
-            <div>Original URL</div>
-            <div className="text-right">Clicks</div>
-          </div>
-          <div className="border-t">
-            {existingLinks.map((r) => (
-              <div
-                key={r.id}
-                className="grid grid-cols-[40px_1.2fr_2fr_140px] gap-4 items-center px-4 py-3 hover:bg-gray-50"
-              >
-                <div>
-                  <input
-                    type="checkbox"
-                    className="size-5 rounded-md border-gray-300"
-                    // без логики — просто визуал
-                    onChange={() => {}}
-                  />
+              {/* Add From Existing Links */}
+              <div className="rounded-2xl border p-4">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+                  <div>
+                    <h3 className="text-lg font-semibold">Add From Existing Links</h3>
+                    <p className="text-sm text-gray-500">Выберите уже созданные шорт-ссылки и добавьте их в проект.</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      placeholder="Search by slug or URL"
+                      className="h-10 w-[260px] rounded-2xl border px-4 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
+                    />
+                    <select className="h-10 rounded-2xl border px-3 outline-none">
+                      <option>Sort: Most clicks</option>
+                      <option>Sort: Least clicks</option>
+                      <option>Sort: A–Z</option>
+                      <option>Sort: Z–A</option>
+                    </select>
+                  </div>
                 </div>
-                <div className="font-medium">rld.bio/{r.slug}</div>
-                <div className="truncate text-gray-600">{r.url}</div>
-                <div className="text-right">
-                  <span className="rounded-xl bg-gray-100 px-2 py-1 text-sm font-medium">{r.clicks}</span>
+
+                <div className="mt-4 rounded-xl border bg-white">
+                  <div className="grid grid-cols-[40px_1.2fr_2fr_140px] gap-4 text-sm text-gray-500 px-4 py-3">
+                    <div />
+                    <div>Short Link</div>
+                    <div>Original URL</div>
+                    <div className="text-right">Clicks</div>
+                  </div>
+                  <div className="border-t">
+                    {existingLinks.map((r) => (
+                      <div
+                        key={r.id}
+                        className="grid grid-cols-[40px_1.2fr_2fr_140px] gap-4 items-center px-4 py-3 hover:bg-gray-50"
+                      >
+                        <div>
+                          <input type="checkbox" className="size-5 rounded-md border-gray-300" onChange={() => {}} />
+                        </div>
+                        <div className="font-medium">rld.bio/{r.slug}</div>
+                        <div className="truncate text-gray-600">{r.url}</div>
+                        <div className="text-right">
+                          <span className="rounded-xl bg-gray-100 px-2 py-1 text-sm font-medium">{r.clicks}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <span className="rounded-lg border px-2 py-1">0 selected</span>
+                    <span className="hidden sm:inline">— выберите ссылки выше</span>
+                  </div>
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <button className="px-4 py-2 rounded-2xl border hover:bg-gray-50 transition w-full sm:w-auto">Cancel</button>
+                    <button className="px-4 py-2 rounded-2xl bg-black text-white hover:bg-black/90 transition w-full sm:w-auto">Add Selected</button>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* футер действий (визуал) */}
-        <div className="mt-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <span className="rounded-lg border px-2 py-1">0 selected</span>
-            <span className="hidden sm:inline">— выберите ссылки выше</span>
-          </div>
-          <div className="flex gap-2">
-            <button className="px-4 py-2 rounded-2xl border hover:bg-gray-50 transition">Cancel</button>
-            <button className="px-4 py-2 rounded-2xl bg-black text-white hover:bg-black/90 transition">Add Selected</button>
-          </div>
-        </div>
-      </div>
 
               {/* Links Table */}
               <div className="rounded-2xl border">
@@ -406,17 +411,14 @@ const StatCard = ({ title, value, sub }: { title: string; value: string | number
           {/* ANALYTICS TAB */}
           {tab === "analytics" && (
             <div className="mt-6 space-y-6 px-2">
-              {/* Clicks Over Time (простая точечная диаграмма-заглушка) */}
               <div className="rounded-2xl border p-4">
                 <h3 className="text-lg font-semibold mb-1">Clicks Over Time</h3>
                 <p className="text-sm text-gray-500 mb-4">Daily click performance for the last 7 days</p>
                 <div className="h-56 w-full rounded-xl bg-gradient-to-b from-white to-gray-50 border grid place-items-center">
-                  {/* тут можно подключить реальный чартист/ричартс позже */}
                   <div className="text-gray-400 text-sm">[chart placeholder]</div>
                 </div>
               </div>
 
-              {/* Link Performance (бар-чарт-заглушка) + Top Links */}
               <div className="rounded-2xl border p-4">
                 <h3 className="text-lg font-semibold mb-3">Link Performance</h3>
                 <div className="h-56 w-full rounded-xl border bg-white grid grid-cols-3 gap-6 place-items-end p-6">
@@ -454,7 +456,7 @@ const StatCard = ({ title, value, sub }: { title: string; value: string | number
             </div>
           )}
 
-          {/* Footer (опционально) */}
+          {/* Footer */}
           <div className="flex justify-end gap-3 px-2 py-4">
             <button
               onClick={() => setOpen(false)}
@@ -468,8 +470,6 @@ const StatCard = ({ title, value, sub }: { title: string; value: string | number
           </div>
         </div>
       </Modal>
-
-      
     </div>
   );
 }

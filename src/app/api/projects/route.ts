@@ -28,6 +28,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
 
+       // 🧩 Безопасная обработка projectId
+    if (!body.projectId || body.projectId === "" || body.projectId === "null") {
+      delete body.projectId; // просто убираем из запроса
+    }
+
+    
     if (!title || !title.trim()) {
       return NextResponse.json({ error: "Title is required" }, { status: 422 });
     }

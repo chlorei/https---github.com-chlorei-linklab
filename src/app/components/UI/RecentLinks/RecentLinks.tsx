@@ -34,10 +34,12 @@ const RecentLinks = ({
 }: RecentLinksProps) => {
   const slug = url.startsWith("/") ? url.slice(1) : url;
   const href = fullUrl ?? `https://rld.bio/${slug}`;
-
+  const [isDeleting, setIsDeleting] = React.useState(false);
 
   const router = useRouter();
   async function handleDelete(linkId: string) {
+    
+    setIsDeleting(true);
       await fetch("/api/links/delete", {
         method: "POST",
         headers: {
@@ -45,9 +47,23 @@ const RecentLinks = ({
         },
         body: JSON.stringify({ linkId }),
       });
-      router.refresh();
+    router.refresh();
+    setIsDeleting(false);
     }
   return (
+    isDeleting ? <div
+      className={[
+        "mt-3",
+        "group relative w-full rounded-3xl border bg-background/50",
+        "p-4 md:p-5",
+        "transition-transform duration-200 hover:scale-[1.01] hover:shadow-sm",
+        "flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4",
+        "text-primary-text",
+        className,
+      ].join(" ")}
+    >
+      Deleting...
+    </div> : 
     <div
       className={[
         "mt-3",
