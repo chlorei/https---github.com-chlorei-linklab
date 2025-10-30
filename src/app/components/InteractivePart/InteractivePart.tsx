@@ -5,6 +5,11 @@ import colorMap from "@/app/utils/colorMap";
 type Session = { id?: string };
 type ColorName = keyof typeof colorMap;
 type ProjectLite = { id: string; title: string; color?: ColorName };
+type CreateLinkBody = {
+  originalUrl: string;
+  userId: string | null;
+  projectId?: string;
+};
 
 export default function InteractivePart() {
   // session (нужно только, чтобы показать переключатель)
@@ -97,8 +102,8 @@ export default function InteractivePart() {
     if (withProject && !projectId) return setError("Please choose a project.");
 
     setLoading(true);
-    try {
-      const body: Record<string, any> = { originalUrl: value , userId: session?.id || null };
+      try {
+        const body: CreateLinkBody = { originalUrl: value ,  userId: session?.id || null };
       if (withProject && projectId) body.projectId = projectId; // не отправляем пустые строки
 
       const res = await fetch("/api/links/create", {

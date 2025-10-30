@@ -13,11 +13,6 @@ export type InsertLinkInput = {
   projectId?: string | null;     // строка или null
 };
 
-function toObjectIdOrUndefined(id?: string | null) {
-  if (!id) return undefined;
-  if (!Types.ObjectId.isValid(id)) return undefined;
-  return new Types.ObjectId(id);
-}
 
 export async function insert(doc: InsertLinkInput) {
   await dbConnect();
@@ -55,4 +50,10 @@ export async function deleteById(linkId: string) {
   await dbConnect();
   if (!Types.ObjectId.isValid(linkId)) return { deletedCount: 0, acknowledged: true };
   return Link.deleteOne({ _id: new Types.ObjectId(linkId) });
+}
+
+export async function findByProjectId(projectId: string) {
+  await dbConnect();
+  if (!Types.ObjectId.isValid(projectId)) return [];
+  return Link.find({ projectId: new Types.ObjectId(projectId) }).sort({ createdAt: -1 }).lean();
 }

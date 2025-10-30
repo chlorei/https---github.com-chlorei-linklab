@@ -1,23 +1,27 @@
 import { NextResponse } from "next/server";
 import * as ProjectController from "@/lib/controllers/project.controller";
+import { requireSession } from "@/lib/auth/auth";
 
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const userId = searchParams.get("userId");
+export const runtime = "nodejs";
 
-  if (!userId) {
-    return NextResponse.json({ error: "User ID is required" }, { status: 400 });
-  }
-
+export async function GET() {
   try {
-    const projects = await ProjectController.getProjectsByUser(userId);
-    return NextResponse.json(projects, { status: 200 });
+    const session = await requireSession();
+    if (!session?.id) {
+      return NextResponse.json({ ok: false, projects: [] }, { status: 401 });
+    }
+
+    const projects = await ProjectController.getProjectsByUser(session.id);
+
+    return NextResponse.json({ ok: true, projects }, { status: 200 });
   } catch (e) {
     console.error("Error fetching projects:", e);
-    return NextResponse.json({ error: "Failed to fetch projects" }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: "Failed to fetch projects", projects: [] },
+      { status: 500 }
+    );
   }
 }
-
 export async function POST(req: Request) {
   try {
     const body = await req.json();

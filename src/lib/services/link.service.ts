@@ -34,3 +34,10 @@ export async function listByUserId(userId: string) {
 export async function removeById(linkId: string) {
   return Repo.deleteById(linkId);
 }
+
+export async function getLinksByProjectId(projectId: string) {
+  console.log("Listing links for projectId:", projectId);
+  const links = await Repo.findByProjectId(projectId);
+  console.log("Found links:", links);
+  return Repo.findByProjectId(projectId);
+}

@@ -7,7 +7,7 @@ export function serializeMongo<T>(obj: T): T {
   }
 
   if (obj && typeof obj === "object") {
-    const newObj: any = {};
+    const newObj: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(obj)) {
       if (value instanceof Types.ObjectId) {
         newObj[key] = value.toString();
@@ -19,7 +19,7 @@ export function serializeMongo<T>(obj: T): T {
         newObj[key] = value;
       }
     }
-    return newObj;
+    return newObj as T;
   }
 
   return obj;

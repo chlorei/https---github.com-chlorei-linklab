@@ -35,3 +35,10 @@ export async function removeLinkById(linkId: string): Promise<void> {
   await LinkService.removeById(linkId);
 }
 
+
+export async function getLinksByProjectId(projectId: string) {
+
+  const projects = await LinkService.getLinksByProjectId(projectId);
+  
+  return projects;
+}

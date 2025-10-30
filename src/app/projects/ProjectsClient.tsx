@@ -40,7 +40,7 @@ function SubmitButton() {
   );
 }
 
-export default function ProjectsClient({ sessionId, colors, projects }: Props) {
+export default function ProjectsClient({ sessionId, colors, projects}: Props) {
   const [open, setOpen] = useState(false);
   const [color, setColor] = useState<ColorName>("mint");
 
