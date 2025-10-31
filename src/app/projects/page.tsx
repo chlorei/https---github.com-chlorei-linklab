@@ -223,7 +223,8 @@ export default async function Page() {
   
   // Transform MongoDB documents to ProjectListItem format
   const projects = rawProjects.map(project => ({
-    id: project._id?.toString() ?? '',
+    _id: project._id?.toString() ?? project.id?.toString() ?? '',
+    id: project.id?.toString() ?? '',
     title: project.title,
     color: project.color
   }));

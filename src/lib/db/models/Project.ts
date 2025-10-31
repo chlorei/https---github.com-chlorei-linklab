@@ -1,7 +1,6 @@
 import { Schema, model, models, Types } from "mongoose";
 
 export interface ProjectDoc {
-  _id: Types.ObjectId;
   userId: Types.ObjectId;
   title: string;
   description?: string;

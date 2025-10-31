@@ -12,7 +12,7 @@ import { useFormStatus } from "react-dom";
 type ColorName = keyof typeof colorMap;
 
 type ProjectListItem = {
-  id: string;                // ⚠️ нормализуем на сервере: _id.toString()
+  _id: string;                // ⚠️ нормализуем на сервере: _id.toString()
   title: string;
   description?: string;
   color: ColorName;          // ⚠️ храним ИМЯ цвета
@@ -44,6 +44,7 @@ export default function ProjectsClient({ sessionId, colors, projects}: Props) {
   const [open, setOpen] = useState(false);
   const [color, setColor] = useState<ColorName>("mint");
 
+  console.log("ProjectsClient rendered with projects:", projects);
   return (
     <>
       {/* Header */}
@@ -110,7 +111,7 @@ export default function ProjectsClient({ sessionId, colors, projects}: Props) {
         >
           {projects.map((card) => (
             <ProjectCard
-              key={card.id}                                   // ✅ стабильный ключ
+              key={card._id}                                   // ✅ стабильный ключ
               title={card.title}
               description={card.description ?? ""}
               color={card.color as ColorName}                 // ✅ имя цвета
