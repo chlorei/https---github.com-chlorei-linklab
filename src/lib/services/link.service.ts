@@ -8,14 +8,12 @@ export async function createShortLink(
 ) {
   const shortId = Math.random().toString(36).slice(2, 8);
 
-  // Не передаём "" — только undefined/null или валидный id
   const safeProjectId = projectId && projectId.trim() !== "" ? projectId : null;
 
-  // service
 return Repo.insert({
   originalUrl,
   shortId,
-  userId,                    // строка id пользователя
+  userId,                    
   projectId: safeProjectId ?? null,
 });
 }

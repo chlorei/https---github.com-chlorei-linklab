@@ -1,4 +1,5 @@
 import * as LinkService from "@/lib/services/link.service";
+import Link from "../db/models/Link";
 
 interface CreateLinkBody {
   userId?: string | null;        // ← а не "null" как тип
@@ -10,7 +11,6 @@ export async function create(body: CreateLinkBody, origin: string) {
   const originalUrl = body?.originalUrl?.toString().trim();
   if (!originalUrl) throw new Error("originalUrl is required");
 
-  // НИКАКИХ "" — только валидный id или null/undefined
   const userId    = body?.userId ?? null;
   const projectId = body?.projectId && body.projectId.trim() !== "" ? body.projectId : null;
 
@@ -26,4 +26,11 @@ export async function list() {
 
 export async function listByUserId(userId: string) {
   return LinkService.listByUserId(userId);
+}
+
+export async function listByProjectId(projectId: string | null) {
+  if (projectId === null) {
+    return Link.find({ projectId: null }).lean();
+  }
+  return Link.find({ projectId }).lean();
 }

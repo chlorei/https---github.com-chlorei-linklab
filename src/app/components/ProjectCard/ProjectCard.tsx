@@ -8,21 +8,20 @@ import colorMap from "@/app/utils/colorMap";
 type ColorName = keyof typeof colorMap;
 
 type FolderCardProps = {
+  projectId: string;
   href?: string;
   title: string;
   description?: string;
   linksCount?: number;
   clicks?: number;
   color: ColorName; // храним имя цвета
+  emptyLinks: { _id: string; shortId: string; originalUrl: string; clicks: number }[];
 };
 
 // демо-список
-const existingLinks = [
-  { id: "1", slug: "black-friday", url: "https://example.com/bf", clicks: 532 },
-  { id: "2", slug: "referral",     url: "https://example.com/ref", clicks: 219 },
-  { id: "3", slug: "landing-alt",  url: "https://example.com/alt", clicks: 94  },
-  { id: "4", slug: "youtube-ad",   url: "https://example.com/yt",  clicks: 130 },
-];
+
+
+
 
 // утилита для затемнения/осветления hex
 function shadeHex(hex: string, percent: number) {
@@ -72,16 +71,91 @@ function ColorSwatchesByName({
 }
 
 export default function ProjectCard({
+  projectId,
   title,
   description,
   linksCount = 0,
   clicks = 0,
   color = "blue",
+  emptyLinks
 }: FolderCardProps) {
+
+
+  const [links, setLinks] = useState<Array<{
+    rank: number;
+    index: number;
+    _id: string;
+    shortId: string;
+    originalUrl: string;
+    clicks: number;
+  }>>([]);
   const [cardTitle, setCardTitle] = useState<string>(title);
   const [cardDescription, setCardDescription] = useState<string>(description ?? "");
   const [open, setOpen] = useState<boolean>(false);
   const [tab, setTab] = useState<"links" | "analytics">("links");
+  const [sortedLinks, setSortedLinks] = useState<typeof links>([]);
+  const [sortOption, setSortOption] = useState("most-clicks");
+  const [emptyLinksState, setEmptyLinksState] = useState(emptyLinks);
+
+
+
+function handleSort(option: string) {
+  setSortOption(option);
+
+  setEmptyLinksState(prev => {
+    const arr = [...prev];
+
+    switch (option) {
+      case "most-clicks":
+        return arr.sort((a,b)=> b.clicks - a.clicks);
+      case "least-clicks":
+        return arr.sort((a,b)=> a.clicks - b.clicks);
+      case "az":
+        return arr.sort((a,b)=> a.shortId.localeCompare(b.shortId));
+      case "za":
+        return arr.sort((a,b)=> b.shortId.localeCompare(a.shortId));
+      default:
+        return arr;
+    }
+  });
+}
+
+useEffect(() => {
+  if (!projectId) return;
+
+  const fetchLinks = async () => {
+    try {
+      const res = await fetch(`/api/links/find?projectid=${encodeURIComponent(projectId)}`, {
+        method: "GET",
+        cache: "no-store", // чтобы не словить кэш
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setLinks(data);
+
+      
+      interface RankedLink {
+        _id: string;
+        shortId: string;
+        url: string;
+        clicks: number;
+        rank: number;
+      }
+
+      setSortedLinks((data.slice()
+        .sort((a: { clicks: number }, b: { clicks: number }) => b.clicks - a.clicks)
+        .map((link: { _id: string; shortId: string; url: string; clicks: number }, index: number): RankedLink => ({
+          ...link,
+          rank: index + 1
+        }))));
+      console.log("Links for project:", data);
+    } catch (error) {
+      console.error("Error fetching links for project:", error);
+    }
+  };
+  fetchLinks();
+}, [projectId]);
+
 
   // имя цвета в состоянии
   const [colorName, setColorName] = useState<ColorName>(color);
@@ -234,7 +308,7 @@ export default function ProjectCard({
               <div>
                 <h2 className="text-2xl font-bold leading-tight">{cardTitle || "Project"}</h2>
                 <p className="text-gray-500 -mt-0.5">
-                  {description || "Marketing campaign links for the new product launch"}
+                  {description}
                 </p>
               </div>
             </div>
@@ -330,11 +404,15 @@ export default function ProjectCard({
                       placeholder="Search by slug or URL"
                       className="h-10 w-[260px] rounded-2xl border px-4 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
                     />
-                    <select className="h-10 rounded-2xl border px-3 outline-none">
-                      <option>Sort: Most clicks</option>
-                      <option>Sort: Least clicks</option>
-                      <option>Sort: A–Z</option>
-                      <option>Sort: Z–A</option>
+                    <select
+                      className="h-10 rounded-2xl border px-3 outline-none"
+                      value={sortOption}
+                      onChange={(e) => handleSort(e.target.value)}
+                    >
+                      <option value="most-clicks">Sort: Most clicks</option>
+                      <option value="least-clicks">Sort: Least clicks</option>
+                      <option value="az">Sort: A–Z</option>
+                      <option value="za">Sort: Z–A</option>
                     </select>
                   </div>
                 </div>
@@ -347,16 +425,16 @@ export default function ProjectCard({
                     <div className="text-right">Clicks</div>
                   </div>
                   <div className="border-t">
-                    {existingLinks.map((r) => (
+                    {emptyLinks.map((r) => (
                       <div
-                        key={r.id}
+                        key={r._id}
                         className="grid grid-cols-[40px_1.2fr_2fr_140px] gap-4 items-center px-4 py-3 hover:bg-gray-50"
                       >
                         <div>
                           <input type="checkbox" className="size-5 rounded-md border-gray-300" onChange={() => {}} />
                         </div>
-                        <div className="font-medium">rld.bio/{r.slug}</div>
-                        <div className="truncate text-gray-600">{r.url}</div>
+                        <div className="font-medium">rld.bio/{r.shortId}</div>
+                        <div className="truncate text-gray-600">{r.originalUrl}</div>
                         <div className="text-right">
                           <span className="rounded-xl bg-gray-100 px-2 py-1 text-sm font-medium">{r.clicks}</span>
                         </div>
@@ -379,7 +457,7 @@ export default function ProjectCard({
 
               {/* Links Table */}
               <div className="rounded-2xl border">
-                <div className="p-4 text-lg font-semibold">Links in this Project (3)</div>
+                <div className="p-4 text-lg font-semibold">Links in this Project ({links.length})</div>
                 <div className="border-t px-4 pb-4">
                   <div className="grid grid-cols-[1.2fr_2fr_120px] gap-4 text-sm text-gray-500 px-2 pb-2">
                     <div>Short Link</div>
@@ -387,17 +465,13 @@ export default function ProjectCard({
                     <div className="text-right">Clicks</div>
                   </div>
 
-                  {[
-                    { slug: "product", url: "https://example.com/products/amazing-product", clicks: 847 },
-                    { slug: "launch", url: "https://example.com/launch", clicks: 1200 },
-                    { slug: "promo", url: "https://example.com/promo", clicks: 800 },
-                  ].map((r) => (
+                  {links.map((r) => (
                     <div
-                      key={r.slug}
+                      key={r._id}
                       className="grid grid-cols-[1.2fr_2fr_120px] gap-4 items-center rounded-xl px-2 py-3 hover:bg-gray-50"
                     >
-                      <div className="font-medium">rld.bio/{r.slug}</div>
-                      <div className="truncate text-gray-600">{r.url}</div>
+                      <a href={`/${r.shortId}`} className="font-medium">rld.bio/{r.shortId}</a>
+                      <div className="truncate text-gray-600">{r.originalUrl}</div>
                       <div className="text-right">
                         <span className="rounded-xl bg-gray-100 px-2 py-1 text-sm font-medium">{r.clicks}</span>
                       </div>
@@ -435,17 +509,13 @@ export default function ProjectCard({
                     <div className="text-right">Clicks</div>
                   </div>
 
-                  {[
-                    { rank: "#1", slug: "rld.bio/launch", clicks: "1,200", share: "42%" },
-                    { rank: "#2", slug: "rld.bio/product", clicks: "847", share: "30%" },
-                    { rank: "#3", slug: "rld.bio/promo", clicks: "800", share: "28%" },
-                  ].map((r) => (
+                  {sortedLinks.map((r) => (
                     <div
-                      key={r.rank}
+                      key={r._id}
                       className="grid grid-cols-[80px_1.3fr_120px] gap-3 items-center rounded-xl px-2 py-3 hover:bg-gray-50"
-                    >
+                    > 
                       <div className="font-medium">{r.rank}</div>
-                      <div className="font-medium">{r.slug}</div>
+                      <div className="font-medium">rld.bio/{r.shortId}</div>
                       <div className="text-right">
                         <span className="rounded-xl bg-gray-100 px-2 py-1 text-sm font-medium">{r.clicks}</span>
                       </div>

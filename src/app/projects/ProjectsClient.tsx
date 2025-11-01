@@ -4,7 +4,7 @@ import TextType from "@/app/components/UI/TextType/TextType";
 import ProjectCard from "../components/ProjectCard/ProjectCard";
 import Modal from "../components/ProjectModal/ProjectModal";
 import ColorPicker from "@/app/components/UI/ColorPicker/ColorPicker";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createProjectAction } from "@/app/actions/projects";
 import colorMap from "../utils/colorMap";
 import { useFormStatus } from "react-dom";
@@ -12,17 +12,17 @@ import { useFormStatus } from "react-dom";
 type ColorName = keyof typeof colorMap;
 
 type ProjectListItem = {
-  _id: string;                // ⚠️ нормализуем на сервере: _id.toString()
+  _id: string;               
   title: string;
   description?: string;
-  color: ColorName;          // ⚠️ храним ИМЯ цвета
-  createdAt?: string;        // ISO-строка (если нужно)
-  updatedAt?: string;        // ISO-строка (если нужно)
+  color: ColorName;          
+  createdAt?: string;       
+  updatedAt?: string;        
 };
 
 type Props = {
   sessionId: string | null;
-  colors: ColorName[];       // ⚠️ массив имён цветов из colorMap
+  colors: ColorName[];       
   projects: ProjectListItem[];
 };
 
@@ -43,7 +43,27 @@ function SubmitButton() {
 export default function ProjectsClient({ sessionId, colors, projects}: Props) {
   const [open, setOpen] = useState(false);
   const [color, setColor] = useState<ColorName>("mint");
+  const [links, setLinks] = useState<any[]>([]);
 
+
+
+  useEffect(() => {
+    const fetchLinks = async () => {
+      try {
+        const res = await fetch(`/api/links/find?projectid=null`, {
+          method: "GET",
+          cache: "no-store", // чтобы не словить кэш
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        setLinks(data);
+        console.log("Links for gay project:", data);
+      } catch (error) {
+        console.error("Error fetching links for project:", error);
+      }
+    };
+    fetchLinks();
+  }, []);
   console.log("ProjectsClient rendered with projects:", projects);
   return (
     <>
@@ -111,12 +131,14 @@ export default function ProjectsClient({ sessionId, colors, projects}: Props) {
         >
           {projects.map((card) => (
             <ProjectCard
-              key={card._id}                                   // ✅ стабильный ключ
+              key={card._id}
+              projectId={card._id}                             // ✅ стабильный ключ
               title={card.title}
               description={card.description ?? ""}
               color={card.color as ColorName}                 // ✅ имя цвета
               linksCount={0}
               clicks={0}
+              emptyLinks={links}                         // ✅ передаём количество ссылок без проекта
             />
           ))}
         </div>
@@ -167,7 +189,6 @@ export default function ProjectsClient({ sessionId, colors, projects}: Props) {
               <label className="block text-sm font-semibold mb-2">Project Color</label>
               {/* 
                  Предполагаем, что твой ColorPicker умеет работать с ИМЕНАМИ цветов.
-                 Если нет — сможем быстро переделать: пробросить name="color" и положить hidden input.
               */}
               <ColorPicker
                 value={color}

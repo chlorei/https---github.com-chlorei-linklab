@@ -6,3 +6,7 @@ export async function removeLinkById(linkId: string): Promise<void> {
     await LinkService.removeById(linkId);
     await Visit.deleteMany({ linkId });
 }
+
+export async function getLinksByProjectId(projectId: string) {
+    return LinkService.getLinksByProjectId(projectId);
+}

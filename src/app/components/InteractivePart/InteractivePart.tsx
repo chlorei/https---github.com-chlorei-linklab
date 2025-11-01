@@ -12,22 +12,18 @@ type CreateLinkBody = {
 };
 
 export default function InteractivePart() {
-  // session (нужно только, чтобы показать переключатель)
   const [session, setSession] = useState<Session | null>(null);
 
-  // form state
   const [url, setUrl] = useState("");
   const [shortUrl, setShortUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // projects
   const [projects, setProjects] = useState<ProjectLite[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(false);
   const [withProject, setWithProject] = useState(false);
   const [projectId, setProjectId] = useState<string | null>(null);
 
-  // ---- fetch session (optional UI)
   useEffect(() => {
     (async () => {
       try {
@@ -40,7 +36,6 @@ export default function InteractivePart() {
     })();
   }, []);
 
-  // ---- fetch projects only when "withProject" is ON
   useEffect(() => {
     if (!withProject) return;
     const ac = new AbortController();
@@ -65,7 +60,6 @@ export default function InteractivePart() {
         const list: ProjectLite[] = Array.isArray(data?.projects) ? data.projects : [];
         setProjects(list);
 
-        // авто-выбор первого проекта при первом включении режима
         if (!projectId && list.length > 0) {
           setProjectId(list[0]._id);
         }
@@ -82,17 +76,16 @@ export default function InteractivePart() {
       alive = false;
       ac.abort();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [withProject]); // намеренно не зависим от session — роут сам читает куку
+  }, [projectId, withProject]);
   console.log(projects);
 
-  // цветная точка выбранного проекта
   const currentColor = useMemo(() => {
     const p = projects.find((x) => x._id === projectId);
     const name = p?.color;
     return name && colorMap[name]?.mainColor ? colorMap[name].mainColor : "#D1D5DB";
   }, [projects, projectId]);
 
+  
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
@@ -155,7 +148,6 @@ export default function InteractivePart() {
           </div>
         )}
 
-        {/* Селект проекта (только если режим включён) */}
         {session?.id && withProject && (
           <div className="flex flex-col gap-2">
             <label className="text-sm font-semibold text-gray-600">Select project</label>
@@ -177,7 +169,6 @@ export default function InteractivePart() {
                 ))}
               </select>
 
-              {/* цветовая точка выбранного проекта */}
               <span
                 className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 size-4 rounded-full border shadow-sm"
                 style={{ backgroundColor: currentColor }}
@@ -186,7 +177,6 @@ export default function InteractivePart() {
           </div>
         )}
 
-        {/* URL input */}
         <input
           type="url"
           value={url}
@@ -197,7 +187,6 @@ export default function InteractivePart() {
           required
         />
 
-        {/* Submit */}
         <button
           type="submit"
           disabled={loading || !url.trim() || (withProject && !projectId)}
@@ -209,10 +198,8 @@ export default function InteractivePart() {
         </button>
       </form>
 
-      {/* Errors */}
       {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
-      {/* Result */}
       {shortUrl && (
         <div className="mt-5 flex items-center justify-between gap-3 rounded-2xl border p-3 shadow-sm">
           <a
