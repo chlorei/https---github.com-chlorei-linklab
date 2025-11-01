@@ -43,7 +43,7 @@ function SubmitButton() {
 export default function ProjectsClient({ sessionId, colors, projects}: Props) {
   const [open, setOpen] = useState(false);
   const [color, setColor] = useState<ColorName>("mint");
-  const [links, setLinks] = useState<any[]>([]);
+  const [links, setLinks] = useState<{ _id: string; shortId: string; originalUrl: string; clicks: number }[]>([]);
 
 
 
@@ -132,13 +132,13 @@ export default function ProjectsClient({ sessionId, colors, projects}: Props) {
           {projects.map((card) => (
             <ProjectCard
               key={card._id}
-              projectId={card._id}                             // ✅ стабильный ключ
+              projectId={card._id}                           
               title={card.title}
               description={card.description ?? ""}
-              color={card.color as ColorName}                 // ✅ имя цвета
+              color={card.color as ColorName}                 
               linksCount={0}
               clicks={0}
-              emptyLinks={links}                         // ✅ передаём количество ссылок без проекта
+              emptyLinks={links}
             />
           ))}
         </div>

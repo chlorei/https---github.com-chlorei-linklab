@@ -96,8 +96,7 @@ export default function ProjectCard({
   const [sortedLinks, setSortedLinks] = useState<typeof links>([]);
   const [sortOption, setSortOption] = useState("most-clicks");
   const [emptyLinksState, setEmptyLinksState] = useState(emptyLinks);
-
-
+  console.log(emptyLinksState)
 
 function handleSort(option: string) {
   setSortOption(option);
