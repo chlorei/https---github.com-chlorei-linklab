@@ -53,6 +53,12 @@ const colorMap = {
     icon: "fill-[#495057]",
     mainColor: "#C5D8E8",
   },
+    slate: {
+    bar: "from-[#E2E8F0] to-[#CBD5E1]",   // Tailwind slate-200 → slate-300
+    iconBg: "bg-[#E2E8F0]/40",
+    icon: "fill-[#334155]",               // slate-700
+    mainColor: "#E2E8F0",
+  },
 } as const;
 
 

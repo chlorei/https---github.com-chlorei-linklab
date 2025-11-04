@@ -2,7 +2,7 @@
 
 import { serializeMongo } from "@/app/utils/serializeMongo";
 import dbConnect from "@/lib/db/dbConnect";
-import {Project} from "@/lib/db/models/Project";
+import Project from "@/lib/db/models/Project";
 
 
 

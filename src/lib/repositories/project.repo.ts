@@ -1,5 +1,5 @@
 import dbConnect from '../db/dbConnect';
-import { Project} from '../db/models/Project';
+import Project from '../db/models/Project';
 import { Types } from 'mongoose';
 
 export const createProject = async (userId: string, title: string, description?: string, color?: string) => {

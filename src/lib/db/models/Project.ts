@@ -23,4 +23,5 @@ const ProjectSchema = new Schema<ProjectDoc>(
 
 ProjectSchema.index({ userId: 1, title: 1 });
 
-export const Project = models.Project || model<ProjectDoc>("Project", ProjectSchema);
+const Project = models.Project || model<ProjectDoc>("Project", ProjectSchema);
+export default Project;

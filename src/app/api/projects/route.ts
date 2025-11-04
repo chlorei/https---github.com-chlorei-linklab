@@ -27,7 +27,6 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { title, description, userId, color } = body;
 
-    // можно временно брать userId из тела, если нет сессии
     if (!userId) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }

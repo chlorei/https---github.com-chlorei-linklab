@@ -4,6 +4,7 @@
 import React, { useEffect, useState } from "react";
 import Modal from "../ProjectModal/ProjectModal";
 import colorMap from "@/app/utils/colorMap";
+import { useRouter } from "next/navigation";
 
 type ColorName = keyof typeof colorMap;
 
@@ -74,8 +75,6 @@ export default function ProjectCard({
   projectId,
   title,
   description,
-  linksCount = 0,
-  clicks = 0,
   color = "blue",
   emptyLinks
 }: FolderCardProps) {
@@ -89,6 +88,9 @@ export default function ProjectCard({
     originalUrl: string;
     clicks: number;
   }>>([]);
+
+  
+  const router = useRouter();
   const [cardTitle, setCardTitle] = useState<string>(title);
   const [cardDescription, setCardDescription] = useState<string>(description ?? "");
   const [open, setOpen] = useState<boolean>(false);
@@ -96,7 +98,45 @@ export default function ProjectCard({
   const [sortedLinks, setSortedLinks] = useState<typeof links>([]);
   const [sortOption, setSortOption] = useState("most-clicks");
   const [emptyLinksState, setEmptyLinksState] = useState(emptyLinks);
+  const [miniMenuOpen, setMiniMenuOpen] = useState(false);
+  const totalClicks = links
+  .map(l => l.clicks ?? 0)
+  .reduce((sum, n) => sum + n, 0);
   console.log(emptyLinksState)
+
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+
+async function addToProject(params: { projectId: string; linkIds: string[] }) {
+  const { projectId, linkIds } = params;
+  try {
+    const response = await fetch(`/api/links/addToProject?projectid=${encodeURIComponent(projectId)}`, {
+      method: "POST",
+      cache: "no-store",
+      body: JSON.stringify({ linkIds }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    console.log("Request successful:", data); 
+    console.log("Links added to project:", data);
+    // router.refresh
+  } catch (error) {
+    console.error("Error adding links to project:", error);
+  }
+}
+
+
+function toggle(id: string) {
+  setSelectedIds(prev =>
+    prev.includes(id)
+      ? prev.filter(x => x !== id) // remove
+      : [...prev, id]              // add
+  )
+}
+
+
 
 function handleSort(option: string) {
   setSortOption(option);
@@ -118,6 +158,25 @@ function handleSort(option: string) {
     }
   });
 }
+
+const linkIds = links.map(l => l._id);
+const deleteProject = async (projectId: string, linkIds: string[]) => {
+    try {
+      const res = await fetch('/api/projects/delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ projectId: projectId, linkIds: linkIds }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      console.log("Deleted project response:", data);
+      router.refresh(); // обновляем список проектов
+    } catch (error) {
+      console.error("Error deleting project:", error);
+    }
+  }
 
 useEffect(() => {
   if (!projectId) return;
@@ -156,15 +215,12 @@ useEffect(() => {
 }, [projectId]);
 
 
-  // имя цвета в состоянии
   const [colorName, setColorName] = useState<ColorName>(color);
   useEffect(() => setColorName(color), [color]);
 
-  // дериваты из карты
   const palette = colorMap[colorName] ?? colorMap.blue;
   const mainHex = palette.mainColor;
 
-  // esc закрывает модалку
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
@@ -207,27 +263,28 @@ useEffect(() => {
     </div>
   );
 
+  console.log('type', typeof projectId);
   return (
     <div
       onClick={() => setOpen(true)}
       className="
-        group relative flex flex-col
-        w-full max-w-[360px] sm:w-[calc(50%-12px)] md:w-[calc(33.333%-14px)] lg:w-[320px]
-        rounded-2xl border border-gray-200/80 dark:border-white/10
-        bg-white dark:bg-neutral-900
-        shadow-sm hover:shadow-md transition-all duration-300 ease-out
-        hover:-translate-y-0.5 overflow-hidden
+        rrelative flex flex-col w-full
+    rounded-2xl border border-gray-200/80 dark:border-white/10
+    bg-white dark:bg-neutral-900
+    shadow-sm hover:shadow-md transition-all duration-200 ease-out
+    hover:-translate-y-0.5 overflow-hidden 
       "
       role="article"
       aria-label={title}
     >
       {/* верхняя цветная полоска */}
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-1.5"
+      {/* <div
+        className="  pointer-events-none
+      absolute inset-x-0 top-0 h-1"
         style={{
           backgroundImage: `linear-gradient(to right, ${shadeHex(mainHex, 25)}, ${shadeHex(mainHex, -5)})`,
         }}
-      />
+      /> */}
 
       <div className="p-5 flex flex-col flex-1 justify-between">
         <div className="flex items-start gap-3">
@@ -247,28 +304,55 @@ useEffect(() => {
 
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
-              {cardTitle}
+              {title}
             </h3>
-            {cardDescription && (
+            {description && (
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                {cardDescription}
+                {description}
               </p>
             )}
           </div>
 
           {/* меню */}
-          <button
-            type="button"
-            className="p-2 -mr-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700
-                       dark:hover:bg-white/5 dark:text-gray-400"
-            aria-label="Open folder menu"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <circle cx="12" cy="5" r="2" />
-              <circle cx="12" cy="12" r="2" />
-              <circle cx="12" cy="19" r="2" />
-            </svg>
-          </button>
+          <div className="relative">
+  <button
+    onClick={(e) => {
+      e.stopPropagation()
+      setMiniMenuOpen((prev) => !prev) // ← toggle
+    }}
+    type="button"
+    className="p-2 -mr-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700
+               dark:hover:bg-white/5 dark:text-gray-400"
+    aria-label="Open folder menu"
+  >
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <circle cx="12" cy="5" r="2" />
+      <circle cx="12" cy="12" r="2" />
+      <circle cx="12" cy="19" r="2" />
+    </svg>
+  </button>
+
+  {miniMenuOpen && (
+    <div
+      onClick={(e) => e.stopPropagation()}
+      onMouseLeave={() => setMiniMenuOpen(false)}        // ← закрытие когда ушёл курсор
+      className="
+        absolute top-full right-0 mt-2
+        z-50
+        w-40
+        rounded-xl border border-border bg-background/90 backdrop-blur-md
+        shadow-lg p-2 text-sm
+      "
+    >
+      <button
+        onClick={() => deleteProject(projectId, linkIds)}
+        className=" px-3 py-2 text-left hover:bg-accent rounded-lg text-red-500 hover:text-red-600 hover:font-medium transition ease-in-out" 
+      >
+        Delete
+      </button>
+    </div>
+  )}
+</div>
         </div>
 
         {/* метрики */}
@@ -277,21 +361,20 @@ useEffect(() => {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M4 12h4v8H4v-8Zm6-6h4v14h-4V6Zm6 9h4v5h-4v-5Z" />
             </svg>
-            <span className="tabular-nums">{linksCount}</span>
+            <span className="tabular-nums">{links.length}</span>
             <span>links</span>
           </div>
           <div className="inline-flex items-center gap-1.5">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M3 12a9 9 0 0 1 16.32-4.9l1.86-1.86v7h-7l2.62-2.62A6 6 0 1 0 18 12h2a8 8 0 1 1-8-8v2A6 6 0 1 0 12 20a6 6 0 0 0 6-6h-2a4 4 0 1 1-4-4v2a2 2 0 1 0 2 2h2a4 4 0 1 1-4 4A8 8 0 0 1 3 12Z" />
             </svg>
-            <span className="tabular-nums">{clicks.toLocaleString()}</span>
+            <span className="tabular-nums">{totalClicks.toLocaleString()}</span>
             <span>clicks</span>
           </div>
         </div>
       </div>
-
       {/* Модалка */}
-      <Modal open={open} onClose={() => setOpen(false)} title={cardTitle}>
+      <Modal open={open} onClose={() => setOpen(false)} title={title}>
         <div className="max-h-[60vh] overflow-y-auto z-[999999]">
           {/* header */}
           <div className="flex flex-col sm:flex-row items-start justify-between gap-4 p-2">
@@ -305,7 +388,7 @@ useEffect(() => {
                 </svg>
               </div>
               <div>
-                <h2 className="text-2xl font-bold leading-tight">{cardTitle || "Project"}</h2>
+                <h2 className="text-2xl font-bold leading-tight">{title || "Project"}</h2>
                 <p className="text-gray-500 -mt-0.5">
                   {description}
                 </p>
@@ -318,15 +401,14 @@ useEffect(() => {
           {/* summary stats */}
           {tab === "links" ? (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-2">
-              <StatCard title="Total Links" value={3} />
-              <StatCard title="Total Clicks" value={2847} />
-              <StatCard title="Avg. Clicks/Link" value={949} />
-            </div>
-          ) : (
+              <StatCard title="Total Links" value={links.length} />
+              <StatCard title="Total Clicks" value={totalClicks} />
+              <StatCard title="Avg. Clicks/Link" value={isNaN(totalClicks / links.length) ? "0" : (totalClicks / links.length).toFixed(2)} />
+            </div>          ) : (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-2">
-              <StatCard title="Total Clicks" value="2,847" sub="+12% from last week" />
+              <StatCard title="Top Country" value="Ukraine" />
               <StatCard title="Avg. Daily" value={407} />
-              <StatCard title="Active Links" value={3} />
+              <StatCard title="Growth since last week" value={"+" + (Math.random() * 100).toFixed(2) + "%"} />
             </div>
           )}
 
@@ -386,7 +468,7 @@ useEffect(() => {
                     type="button"
                     className="h-11 px-5 rounded-2xl bg-black text-white hover:bg-black/90 transition"
                   >
-                    + Add
+                    Add
                   </button>
                 </div>
               </div>
@@ -430,7 +512,7 @@ useEffect(() => {
                         className="grid grid-cols-[40px_1.2fr_2fr_140px] gap-4 items-center px-4 py-3 hover:bg-gray-50"
                       >
                         <div>
-                          <input type="checkbox" className="size-5 rounded-md border-gray-300" onChange={() => {}} />
+                          <input type="checkbox" onChange={() => toggle(r._id)} className="size-5 rounded-md border-gray-300" />
                         </div>
                         <div className="font-medium">rld.bio/{r.shortId}</div>
                         <div className="truncate text-gray-600">{r.originalUrl}</div>
@@ -444,12 +526,11 @@ useEffect(() => {
 
                 <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
                   <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <span className="rounded-lg border px-2 py-1">0 selected</span>
-                    <span className="hidden sm:inline">— выберите ссылки выше</span>
+                    <span className="rounded-lg border px-2 py-1"> {selectedIds.length} selected</span>
                   </div>
                   <div className="flex gap-2 w-full sm:w-auto">
                     <button className="px-4 py-2 rounded-2xl border hover:bg-gray-50 transition w-full sm:w-auto">Cancel</button>
-                    <button className="px-4 py-2 rounded-2xl bg-black text-white hover:bg-black/90 transition w-full sm:w-auto">Add Selected</button>
+                    <button onClick={() => addToProject({ projectId, linkIds: selectedIds })} className="px-4 py-2 rounded-2xl bg-black text-white hover:bg-black/90 transition w-full sm:w-auto">Add Selected</button>
                   </div>
                 </div>
               </div>

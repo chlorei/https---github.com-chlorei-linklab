@@ -47,6 +47,7 @@ export default function ProjectsClient({ sessionId, colors, projects}: Props) {
 
 
 
+
   useEffect(() => {
     const fetchLinks = async () => {
       try {
@@ -121,12 +122,7 @@ export default function ProjectsClient({ sessionId, colors, projects}: Props) {
       ) : (
         <div
           className="
-            grid grid-cols-1
-            xs:grid-cols-2
-            md:grid-cols-3
-            xl:grid-cols-4
-            gap-5
-            w-full
+          flex gap-3 flex-wrap align-center justify-between
           "
         >
           {projects.map((card) => (

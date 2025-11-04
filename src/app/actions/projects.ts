@@ -1,7 +1,7 @@
 "use server";
 
 import dbConnect from "@/lib/db/dbConnect";
-import {Project} from "@/lib/db/models/Project";
+import Project from "@/lib/db/models/Project";
 import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/auth/auth"; // ⬅️ твой файл с getSession()
                                                      // путь подстрой под проект
