@@ -104,6 +104,8 @@ import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { loginAction } from "@/app/actions/auth";
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
+
 
 
 function SubmitBtn() {
@@ -121,6 +123,8 @@ function SubmitBtn() {
 
 export default function SignIn() {
   const [error, setError] = useState<string | null>(null);
+  const [show, setShow] = useState<boolean>(false);
+
 
   async function handle(formData: FormData) {
     setError(null);
@@ -155,16 +159,24 @@ export default function SignIn() {
               />
             </div>
 
-            <div>
-              <input
-                name="password"
-                type="password"
-                placeholder="Password"
-                autoComplete="password"
-                className="h-11 w-full rounded-2xl border px-4 outline-none transition
-                           focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
-              />
-            </div>
+           <div className="relative">
+      <input
+        name="password"
+        type={show ? "text" : "password"}
+        placeholder="Password"
+        autoComplete="password"
+        className="h-11 w-full rounded-2xl border px-4 pr-10 outline-none transition
+                   focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
+      />
+
+      <button
+        type="button"
+        onClick={() => setShow((p) => !p)}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-black/60 hover:text-black"
+      >
+        {show ? <EyeOff size={18} /> : <Eye size={18} />}
+      </button>
+    </div>
 
             <button
               onSubmit={SubmitBtn}

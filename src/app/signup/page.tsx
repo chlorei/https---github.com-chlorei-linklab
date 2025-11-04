@@ -2,17 +2,20 @@
 
 import Link from "next/link";
 import React, { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
+
 
 const Main = () => {
   const [msg, setMsg] = useState<string | null>(null);
 
-  
+  const [show1, setShow1] = useState<boolean>(false);
+  const [show2, setShow2] = useState<boolean>(false);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
   e.preventDefault();
   setMsg(null);
 
   const form = e.currentTarget;
-
   const firstName = (form.elements.namedItem("firstName") as HTMLInputElement)?.value.trim() || "";
   const lastName  = (form.elements.namedItem("lastName")  as HTMLInputElement)?.value.trim() || "";
   const email     = (form.elements.namedItem("email")     as HTMLInputElement)?.value.trim().toLowerCase() || "";
@@ -101,29 +104,44 @@ const Main = () => {
             </div>
 
             <div className="flex flex-col gap-3">
-              <input
-                name="password"
-                type="password"
-                placeholder="Password"
-                autoComplete="new-password"
-                required
-                minLength={8}
-                className="h-11 w-full rounded-2xl border px-4 outline-none transition
-                           focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
-              />
+      <div className="relative">
+        <input
+          name="password"
+          type={show1 ? "text" : "password"}
+          placeholder="Password"
+          autoComplete="new-password"
+          required
+          minLength={8}
+          className="h-11 w-full rounded-2xl border px-4 pr-10 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
+        />
+        <button
+          type="button"
+          onClick={() => setShow1((p) => !p)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-black/60 hover:text-black"
+        >
+          {show1 ? <EyeOff size={18} /> : <Eye size={18} />}
+        </button>
+      </div>
 
-              <input
-                name="password2"
-                type="password"
-                placeholder="Repeat Password"
-                autoComplete="new-password"
-                required
-                minLength={8}
-                className="h-11 w-full rounded-2xl border px-4 outline-none transition
-                           focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
-              />
-
-            </div>
+      <div className="relative">
+        <input
+          name="password2"
+          type={show2 ? "text" : "password"}
+          placeholder="Repeat Password"
+          autoComplete="new-password"
+          required
+          minLength={8}
+          className="h-11 w-full rounded-2xl border px-4 pr-10 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
+        />
+        <button
+          type="button"
+          onClick={() => setShow2((p) => !p)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-black/60 hover:text-black"
+        >
+          {show2 ? <EyeOff size={18} /> : <Eye size={18} />}
+        </button>
+      </div>
+    </div>
 
             <button
               type="submit"
