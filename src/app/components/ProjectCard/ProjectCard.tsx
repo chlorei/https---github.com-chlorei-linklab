@@ -46,6 +46,7 @@ type FolderCardProps = {
 
 
 
+
 // утилита для затемнения/осветления hex
 function shadeHex(hex: string, percent: number) {
   const m = hex.replace("#", "");
@@ -303,55 +304,47 @@ const handleSave = async () => {
   setOpen(false);
 };
 
-// const fetchLinks = async () => {
-//     try {
-//       const res = await fetch(
-//         `/api/links/find?projectid=${encodeURIComponent(projectId)}`,
-//         { method: "GET", cache: "no-store" }
-//       );
-//       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-//       const data = await res.json();
+useEffect(() => {
+  const fetchLinks = async () => {
+    try {
+      const res = await fetch(
+        `/api/links/find?projectid=${encodeURIComponent(projectId)}`,
+        { method: "GET", cache: "no-store" }
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
 
-//       setProjectLinks(data);
+      setProjectLinks(data);
 
-//       interface RankedLink {
-//         _id: string;
-//         shortId: string;
-//         originalUrl: string;
-//         clicks: number;
-//         rank: number;
-//       }
+      // interface RankedLink {
+      //   _id: string;
+      //   shortId: string;
+      //   originalUrl: string;
+      //   clicks: number;
+      //   rank: number;
+      // }
 
-//       setSortedLinks(
-//         data
-//           .slice()
-//           .sort((a: { clicks: number }, b: { clicks: number }) => b.clicks - a.clicks)
-//           .map(
-//             (
-//               link: { _id: string; shortId: string; originalUrl: string; clicks: number },
-//               index: number
-//             ): RankedLink => ({
-//               ...link,
-//               rank: index + 1,
-//             })
-//           )
-//       );
+      // setSortedLinks(
+      //   data
+      //     .slice()
+      //     .sort((a: { clicks: number }, b: { clicks: number }) => b.clicks - a.clicks)
+      //     .map(
+      //       (
+      //         link: { _id: string; shortId: string; originalUrl: string; clicks: number },
+      //         index: number
+      //       ): RankedLink => ({
+      //         ...link,
+      //         rank: index + 1,
+      //       })
+      //     )
+      // );
 
-//       console.log("Links for project:", data);
-//     } catch (error) {
-//       console.error("Error fetching links for project:", error);
-//     }
-//   };
-
-// useEffect(() => {
-//   if (!projectId || !open) return;          // добавил проверку на open
-//   fetchLinks();
-// }, [projectId, open]);            // добавил open в зависимости
-
-
-// useEffect(() => {
-//   fetchLinks();
-// }, []);
+    } catch (error) {
+      console.error("Error fetching links for3 project:", error);
+    }
+  };
+  fetchLinks();
+}, [projectId]);
 
 
   const [colorName, setColorName] = useState<ColorName>(color);
