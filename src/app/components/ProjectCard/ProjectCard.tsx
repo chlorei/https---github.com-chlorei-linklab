@@ -127,14 +127,14 @@ export default function ProjectCard({
   const [cardTitle, setCardTitle] = useState<string>(title);
   const [cardDescription, setCardDescription] = useState<string>(description ?? "");
   const [open, setOpen] = useState<boolean>(false);
-  const [tab, setTab] = useState<"links" | "analytics">("links");
-  setTab("links")
-  const [sortedLinks, setSortedLinks] = useState<typeof projectLinks>([]);
-  setSortedLinks([]);
+  const [tab] = useState<"links" | "analytics">("links");
+
+  const [sortedLinks] = useState<typeof projectLinks>([]);
+
   // const [sortOption, setSortOption] = useState("most-clicks");
   const [emptyLinks, setEmptyLinks] = useState<{ _id: string; shortId: string; originalUrl: string; clicks: number }[]>([]);
-  const [emptyLinksState, setEmptyLinksState] = useState(emptyLinks);
-  setEmptyLinksState(emptyLinks);
+  const [emptyLinksState] = useState(emptyLinks);
+
   const [miniMenuOpen, setMiniMenuOpen] = useState(false);
   const totalClicks = projectLinks
   .map(l => l.clicks ?? 0)

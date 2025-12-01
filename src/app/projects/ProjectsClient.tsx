@@ -45,8 +45,7 @@ function SubmitButton() {
 export default function ProjectsClient({ sessionId, colors, projects, activityAll}: Props) {
   const [open, setOpen] = useState(false);
   const [color, setColor] = useState<ColorName>("mint");
-  const [links, setLinks] = useState<{ _id: string; shortId: string; originalUrl: string; clicks: number }[]>([]);
-  setLinks(links);
+  const [links] = useState<{ _id: string; shortId: string; originalUrl: string; clicks: number }[]>([]);
 
 
 
