@@ -13,3 +13,10 @@ export async function getAllLocationsByUserId(userId: string) {
  await dbConnect();
   return Location.find({ userId }).sort({ clicks: -1 }).lean().exec();
 }
+
+
+
+export async function getAllLocationsByProjectId(projectId: string) {
+  await dbConnect();
+  return Location.find({ projectId }).sort({ clicks: -1 }).lean().exec();
+}

@@ -7,7 +7,6 @@ import Header from "@/app/components/Header/Header";
 // import { ThemeToggle } from "./components/ThemeToggle/ThemeToggle";
 import AppProviders from "@/app/providers/AppProviders";
 import { getSession } from "@/lib/auth/auth";
-import Link from "next/link";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -99,9 +98,9 @@ export default async function RootLayout({
             "
           /> */}
           </div>
-            <footer className="text-xs text-gray-500 text-center py-6">
+            {/* <footer className="text-xs text-gray-500 text-center py-6">
             © 2025 Relinxr — <Link href="/privacy" className="underline">Privacy Policy</Link>
-          </footer>
+          </footer> */}
         </AppProviders>
       </body>
     </html>

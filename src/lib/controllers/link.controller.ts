@@ -34,3 +34,13 @@ export async function listByProjectId(projectId: string | null) {
   }
   return Link.find({ projectId }).lean();
 }
+
+export async function detachFromProject(linkId: string) {
+  const link = await Link.findById(linkId);
+  if (!link) return null;
+
+  link.projectId = null;    // ← вот тут делаем null
+  await link.save();        // ← сохраняем
+
+  return link.toObject();
+}

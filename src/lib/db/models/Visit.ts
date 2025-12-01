@@ -7,6 +7,7 @@ const visitSchema = new Schema(
     ip: String,
     userAgent: String,
     creatorUserId: { type: Types.ObjectId, ref: "User", required: false, default: "undefined" },
+    projectId: { type: Types.ObjectId, ref: "Project", required: false, default: "undefined" },
   },
   { timestamps: true }
 );

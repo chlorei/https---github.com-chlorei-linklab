@@ -4,7 +4,7 @@ import TextType from "@/app/components/UI/TextType/TextType";
 import ProjectCard from "../components/ProjectCard/ProjectCard";
 import Modal from "../components/ProjectModal/ProjectModal";
 import ColorPicker from "@/app/components/UI/ColorPicker/ColorPicker";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createProjectAction } from "@/app/actions/projects";
 import colorMap from "../utils/colorMap";
 import { useFormStatus } from "react-dom";
@@ -21,9 +21,11 @@ type ProjectListItem = {
 };
 
 type Props = {
+  // topCountry: { day: string; visits: number } | null;
   sessionId: string | null;
   colors: ColorName[];       
   projects: ProjectListItem[];
+  activityAll: Record<string, { day: string; clicks: number }[]>;
 };
 
 function SubmitButton() {
@@ -40,31 +42,34 @@ function SubmitButton() {
   );
 }
 
-export default function ProjectsClient({ sessionId, colors, projects}: Props) {
+export default function ProjectsClient({ sessionId, colors, projects, activityAll}: Props) {
   const [open, setOpen] = useState(false);
   const [color, setColor] = useState<ColorName>("mint");
   const [links, setLinks] = useState<{ _id: string; shortId: string; originalUrl: string; clicks: number }[]>([]);
+  setLinks(links);
 
 
 
+  // useEffect(() => {
+  //   const fetchLinks = async () => {
+  //     try {
+  //       const res = await fetch(`/api/links/find?projectid=null`, {
+  //         method: "GET",
+  //         cache: "no-store",
+  //       });
+  //       if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  //       const data = await res.json();
+  //       setLinks(data);
+  //       console.log("Links for gayы project:", data);
+  //     } catch (error) {
+  //       console.error("Error fetching links for project:", error);
+  //     }
+  //   };
+  //   fetchLinks();
+  // }, []);
 
-  useEffect(() => {
-    const fetchLinks = async () => {
-      try {
-        const res = await fetch(`/api/links/find?projectid=null`, {
-          method: "GET",
-          cache: "no-store", // чтобы не словить кэш
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        setLinks(data);
-        console.log("Links for gay project:", data);
-      } catch (error) {
-        console.error("Error fetching links for project:", error);
-      }
-    };
-    fetchLinks();
-  }, []);
+
+  console.log("bruvburv:", links);  
   console.log("ProjectsClient rendered with projects:", projects);
   return (
     <>
@@ -125,16 +130,18 @@ export default function ProjectsClient({ sessionId, colors, projects}: Props) {
           flex gap-3 flex-wrap align-center justify-between
           "
         >
-          {projects.map((card) => (
+          {sessionId && projects.map((card) => (
             <ProjectCard
+              sessionId={sessionId}
               key={card._id}
               projectId={card._id}                           
               title={card.title}
-              description={card.description ?? ""}
+              description={card.description}
               color={card.color as ColorName}                 
               linksCount={0}
               clicks={0}
-              emptyLinks={links}
+              activity={activityAll[card._id] || []}
+              // emptyLinks={links}
             />
           ))}
         </div>
@@ -148,7 +155,7 @@ export default function ProjectsClient({ sessionId, colors, projects}: Props) {
             if (res.ok) setOpen(false);
             else alert(res.error ?? "Failed");
           }}
-          className="max-h-[80vh] overflow-y-auto p-2"
+          className="ma x-h-[80vh] overflow-y-auto p-2"
         >
           <div className="px-1">
             <h2 className="text-2xl font-bold">Create New Project</h2>

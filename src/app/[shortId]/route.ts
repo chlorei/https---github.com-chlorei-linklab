@@ -74,7 +74,7 @@ export async function GET(
   // await Visit.syncIndexes();
   // await Location.syncIndexes();
   await Promise.all([
-    VisitController.addOne({ linkId: link._id, ip, userAgent: ua, creatorUserId: link.userId}),
+    VisitController.addOne({ linkId: link._id, ip, userAgent: ua, creatorUserId: link.userId, projectId: link.projectId}),
     Location.updateOne({ countryName: countryName, userId: link.userId }, { $inc: { clicks: 1 } }, { upsert: true }),
     Link.updateOne({ _id: link._id }, { isActive: true, $inc: { clicks: 1 } }),
   ]);

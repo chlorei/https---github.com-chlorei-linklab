@@ -211,7 +211,7 @@ import ProjectsClient from "./ProjectsClient";
 import colorMap from "@/app/utils/colorMap";
 import { getSession } from "@/lib/auth/auth";
 import getProjects from "@/lib/queries/projects";
-
+import { getLast7DaysVisitsByProject } from "@/lib/queries/activity";
 export const revalidate = 0;
 export const dynamic = "force-dynamic";
   
@@ -220,21 +220,53 @@ export default async function Page() {
   console.log(colorMap)
   const rawProjects = session ? await getProjects(session.id) : [];
   console.log("Projects fetched in Projects Page:", rawProjects);
-  
   // Transform MongoDB documents to ProjectListItem format
+
+
   const projects = rawProjects.map(project => ({
     _id: project._id?.toString() ?? project.id?.toString() ?? '',
     id: project.id?.toString() ?? '',
     title: project.title,
     color: project.color
   }));
+
+  const activityAll = await Promise.all(
+    projects.map(project =>
+      getLast7DaysVisitsByProject(
+        project._id,
+        "Europe/Berlin",
+        7
+      )
+    )
+  );
+
+  console.log("Activity data for projects:", activityAll);
+  const activityMap: Record<string, {day: string, clicks: number}[]> = {};
+
+  for (let i = 0; i < projects.length; i++) {
+    activityMap[projects[i]._id.toString()] = activityAll[i];
+  }
+  // const topCountry = await getLast7DaysVisitsByProject(
+  //   projects[0]?._id || '',
+  //   "Europe/Berlin",
+  //   7
+  // );
+
+
+  // const locationBundles = projects.map(project => getAllLocationsByProjectId(project._id));
+  // const locationsResults = await Promise.all(locationBundles);
+
+  // console.log("Locations results for projects:", locationsResults);
+// 
   
   const colorNames = Object.keys(colorMap) as (keyof typeof colorMap)[];
 
-  console.log("Session in Projects Page:", session);
+  // console.log("BABADUK in Projects Page:", topCountry);
   return (
     <div className="container text-primary-text mx-auto px-4 mt-40">
       <ProjectsClient
+        // topCountry={topCountry}
+        activityAll={activityMap}
         sessionId={session?.id ?? null}
         colors={colorNames}
         projects={projects}

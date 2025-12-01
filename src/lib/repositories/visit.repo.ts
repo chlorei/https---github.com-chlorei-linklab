@@ -14,6 +14,7 @@ export type AddVisit = {
   ip?: string;
   userAgent?: string;
   creatorUserId?: Types.ObjectId;
+  projectId?: Types.ObjectId;
 };
 
 export async function addOne({doc: addVisit} : {doc: AddVisit} ) {

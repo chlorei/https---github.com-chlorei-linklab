@@ -10,10 +10,13 @@ type LinkItem = {
   _id: string;
   originalUrl: string;
   shortId: string;
+  projectId?: string;
   clicks: number;
   createdAt: string;
 };
+
 export default function LinksClient({ links }: { links: LinkItem[] }) {
+
 
 
   const [q, setQ] = useState("");
@@ -23,7 +26,7 @@ export default function LinksClient({ links }: { links: LinkItem[] }) {
     if (!s) return links;
     return links.filter(
       (l) =>
-        l.originalUrl.toLowerCase().includes(s) ||
+        l.originalUrl.toLowerCase().includes(s) ||  
         l.shortId.toLowerCase().includes(s)
     );
   }, [q, links]);
@@ -89,6 +92,7 @@ export default function LinksClient({ links }: { links: LinkItem[] }) {
                 clicks={l.clicks}
                 date={l.createdAt}
                 id={l._id}
+                projectId={l.projectId}
               />
             ))
           )}

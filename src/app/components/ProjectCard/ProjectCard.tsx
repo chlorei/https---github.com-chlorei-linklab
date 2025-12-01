@@ -5,10 +5,15 @@ import React, { useEffect, useState } from "react";
 import Modal from "../ProjectModal/ProjectModal";
 import colorMap from "@/app/utils/colorMap";
 import { useRouter } from "next/navigation";
+import ActivityChart from "../ActivityChart/ActivityChart";
+
+// import { set } from "mongoose";
+
 
 type ColorName = keyof typeof colorMap;
 
 type FolderCardProps = {
+  sessionId: string;
   projectId: string;
   href?: string;
   title: string;
@@ -16,11 +21,28 @@ type FolderCardProps = {
   linksCount?: number;
   clicks?: number;
   color: ColorName; // храним имя цвета
-  emptyLinks: { _id: string; shortId: string; originalUrl: string; clicks: number }[];
+  activity?: { day: string; clicks: number }[];
+  // emptyLinks: { _id: string; shortId: string; originalUrl: string; clicks: number }[];
 };
 
 // демо-список
-
+  // useEffect(() => {
+  //   const fetchLinks = async () => {
+  //     try {
+  //       const res = await fetch(`/api/links/find?projectid=null`, {
+  //         method: "GET",
+  //         cache: "no-store",
+  //       });
+  //       if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  //       const data = await res.json();
+  //       setLinks(data);
+  //       console.log("Links for gayы project:", data);
+  //     } catch (error) {
+  //       console.error("Error fetching links for project:", error);
+  //     }
+  //   };
+  //   fetchLinks();
+  // }, []);
 
 
 
@@ -47,6 +69,11 @@ function ColorSwatchesByName({
   onChange: (c: ColorName) => void;
   names: ColorName[];
 }) {
+
+
+
+
+
   return (
     <div className="grid grid-cols-5 gap-2">
       {names.map((name) => {
@@ -72,15 +99,17 @@ function ColorSwatchesByName({
 }
 
 export default function ProjectCard({
+  sessionId,
   projectId,
   title,
   description,
   color = "blue",
-  emptyLinks
+  activity = []
+  // emptyLinks
 }: FolderCardProps) {
 
 
-  const [links, setLinks] = useState<Array<{
+  const [projectLinks, setProjectLinks] = useState<Array<{
     rank: number;
     index: number;
     _id: string;
@@ -89,17 +118,25 @@ export default function ProjectCard({
     clicks: number;
   }>>([]);
 
-  
+  // const [loading, setLoading] = useState<boolean>(false);
+
+  // const [shortUrl, setShortUrl] = useState<string>("");
+  // const [slug, setSlug] = useState<string>("");
+  const [link, setLink] = useState<string>("");
   const router = useRouter();
   const [cardTitle, setCardTitle] = useState<string>(title);
   const [cardDescription, setCardDescription] = useState<string>(description ?? "");
   const [open, setOpen] = useState<boolean>(false);
   const [tab, setTab] = useState<"links" | "analytics">("links");
-  const [sortedLinks, setSortedLinks] = useState<typeof links>([]);
-  const [sortOption, setSortOption] = useState("most-clicks");
+  setTab("links")
+  const [sortedLinks, setSortedLinks] = useState<typeof projectLinks>([]);
+  setSortedLinks([]);
+  // const [sortOption, setSortOption] = useState("most-clicks");
+  const [emptyLinks, setEmptyLinks] = useState<{ _id: string; shortId: string; originalUrl: string; clicks: number }[]>([]);
   const [emptyLinksState, setEmptyLinksState] = useState(emptyLinks);
+  setEmptyLinksState(emptyLinks);
   const [miniMenuOpen, setMiniMenuOpen] = useState(false);
-  const totalClicks = links
+  const totalClicks = projectLinks
   .map(l => l.clicks ?? 0)
   .reduce((sum, n) => sum + n, 0);
   console.log(emptyLinksState)
@@ -121,6 +158,8 @@ async function addToProject(params: { projectId: string; linkIds: string[] }) {
     const data = await response.json();
     console.log("Request successful:", data); 
     console.log("Links added to project:", data);
+    setSelectedIds([]);
+    router.refresh();    
     // router.refresh
   } catch (error) {
     console.error("Error adding links to project:", error);
@@ -128,6 +167,27 @@ async function addToProject(params: { projectId: string; linkIds: string[] }) {
 }
 
 
+ useEffect(() => {
+    const fetchLinks = async () => {
+      try {
+        const res = await fetch(`/api/links/find?projectid=null`, {
+          method: "GET",
+          cache: "no-store",
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        setEmptyLinks(data);
+        console.log("Links for gayы project:", data);
+      } catch (error) {
+        console.error("Error fetching links for project:", error);
+      }
+    };
+    fetchLinks();
+  }, []);
+
+  
+
+  
 function toggle(id: string) {
   setSelectedIds(prev =>
     prev.includes(id)
@@ -138,28 +198,28 @@ function toggle(id: string) {
 
 
 
-function handleSort(option: string) {
-  setSortOption(option);
+// function handleSort(option: string) {
+//   // setSortOption(option);
 
-  setEmptyLinksState(prev => {
-    const arr = [...prev];
+//   setEmptyLinksState(prev => {
+//     const arr = [...prev];
 
-    switch (option) {
-      case "most-clicks":
-        return arr.sort((a,b)=> b.clicks - a.clicks);
-      case "least-clicks":
-        return arr.sort((a,b)=> a.clicks - b.clicks);
-      case "az":
-        return arr.sort((a,b)=> a.shortId.localeCompare(b.shortId));
-      case "za":
-        return arr.sort((a,b)=> b.shortId.localeCompare(a.shortId));
-      default:
-        return arr;
-    }
-  });
-}
+//     switch (option) {
+//       case "most-clicks":
+//         return arr.sort((a,b)=> b.clicks - a.clicks);
+//       case "least-clicks":
+//         return arr.sort((a,b)=> a.clicks - b.clicks);
+//       case "az":
+//         return arr.sort((a,b)=> a.shortId.localeCompare(b.shortId));
+//       case "za":
+//         return arr.sort((a,b)=> b.shortId.localeCompare(a.shortId));
+//       default:
+//         return arr;
+//     }
+//   });
+// }
 
-const linkIds = links.map(l => l._id);
+const linkIds = projectLinks.map(l => l._id);
 const deleteProject = async (projectId: string, linkIds: string[]) => {
     try {
       const res = await fetch('/api/projects/delete', {
@@ -177,42 +237,121 @@ const deleteProject = async (projectId: string, linkIds: string[]) => {
       console.error("Error deleting project:", error);
     }
   }
+  type CreateLinkBody = {
+  originalUrl: string;
+  userId: string | null;
+  projectId?: string;
+};
 
-useEffect(() => {
-  if (!projectId) return;
 
-  const fetchLinks = async () => {
-    try {
-      const res = await fetch(`/api/links/find?projectid=${encodeURIComponent(projectId)}`, {
-        method: "GET",
-        cache: "no-store", // чтобы не словить кэш
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setLinks(data);
+  const handleDeleteFromProject = async (linkId: string) => {
+  await fetch(
+    `/api/links/deleteFromProject?id=${linkId}&projectid=${projectId}`,
+    { method: "DELETE" }
+  );
 
-      
-      interface RankedLink {
-        _id: string;
-        shortId: string;
-        url: string;
-        clicks: number;
-        rank: number;
-      }
+  setProjectLinks(prev => prev.filter(l => l._id !== linkId));
+};
 
-      setSortedLinks((data.slice()
-        .sort((a: { clicks: number }, b: { clicks: number }) => b.clicks - a.clicks)
-        .map((link: { _id: string; shortId: string; url: string; clicks: number }, index: number): RankedLink => ({
-          ...link,
-          rank: index + 1
-        }))));
-      console.log("Links for project:", data);
-    } catch (error) {
-      console.error("Error fetching links for project:", error);
+
+  async function handleClick() {
+  // setLoading(true);
+  try {
+    const body: CreateLinkBody = {
+      originalUrl: link,
+      userId: sessionId,
+      projectId: projectId || undefined,
+    };
+
+    const res = await fetch("/api/links/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json().catch(async () => {
+      const text = await res.text();
+      throw new Error(`Bad JSON (${res.status}): ${text}`);
+    });
+
+    if (!res.ok || !data?.ok || !data?.shortUrl) {
+      throw new Error(data?.error || `Request failed with status ${res.status}`);
     }
-  };
-  fetchLinks();
-}, [projectId]);
+
+    // setShortUrl(data.shortUrl);
+    router.refresh(); // ← вот он
+  } catch (err) {
+    console.error("Create link error:", err);
+  } finally {
+    // setLoading(false);
+  }
+}
+
+
+const handleSave = async () => {
+  await fetch("/api/projects/update", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      projectId,
+      title: cardTitle,
+      description: cardDescription,
+      color: colorName,                  
+    }),
+  });
+
+  setOpen(false);
+};
+
+// const fetchLinks = async () => {
+//     try {
+//       const res = await fetch(
+//         `/api/links/find?projectid=${encodeURIComponent(projectId)}`,
+//         { method: "GET", cache: "no-store" }
+//       );
+//       if (!res.ok) throw new Error(`HTTP ${res.status}`);
+//       const data = await res.json();
+
+//       setProjectLinks(data);
+
+//       interface RankedLink {
+//         _id: string;
+//         shortId: string;
+//         originalUrl: string;
+//         clicks: number;
+//         rank: number;
+//       }
+
+//       setSortedLinks(
+//         data
+//           .slice()
+//           .sort((a: { clicks: number }, b: { clicks: number }) => b.clicks - a.clicks)
+//           .map(
+//             (
+//               link: { _id: string; shortId: string; originalUrl: string; clicks: number },
+//               index: number
+//             ): RankedLink => ({
+//               ...link,
+//               rank: index + 1,
+//             })
+//           )
+//       );
+
+//       console.log("Links for project:", data);
+//     } catch (error) {
+//       console.error("Error fetching links for project:", error);
+//     }
+//   };
+
+// useEffect(() => {
+//   if (!projectId || !open) return;          // добавил проверку на open
+//   fetchLinks();
+// }, [projectId, open]);            // добавил open в зависимости
+
+
+// useEffect(() => {
+//   fetchLinks();
+// }, []);
 
 
   const [colorName, setColorName] = useState<ColorName>(color);
@@ -230,30 +369,30 @@ useEffect(() => {
 
   const colorNames = Object.keys(colorMap) as ColorName[];
 
-  const SegTabs = ({
-    value,
-    onChange,
-  }: { value: "links" | "analytics"; onChange: (v: "links" | "analytics") => void }) => (
-    <div className="inline-flex rounded-2xl bg-gray-100 p-1 text-sm font-medium">
-      {(["links", "analytics"] as const).map((k) => (
-        <button
-          key={k}
-          type="button"
-          onClick={() => onChange(k)}
-          className={`px-4 py-2 rounded-2xl transition flex items-center gap-2 ${
-            value === k ? "bg-white shadow-sm" : "text-gray-600 hover:text-gray-800"
-          }`}
-        >
-          {k === "links" ? (
-            <svg width="16" height="16" viewBox="0 0 24 24"><path d="M3.9 12a5 5 0 0 1 5-5h3v2h-3a3 3 0 0 0 0 6h3v2h-3a5 5 0 0 1-5-5Zm6-1h4v2h-4v-2Zm5.2-4h3a5 5 0 1 1 0 10h-3v-2h3a3 3 0 1 0 0-6h-3V7Z" fill="currentColor"/></svg>
-          ) : (
-            <svg width="16" height="16" viewBox="0 0 24 24"><path d="M4 13h3v7H4v-7Zm6-6h3v13h-3V7Zm6 3h3v10h-3V10Z" fill="currentColor"/></svg>
-          )}
-          {k === "links" ? "Links" : "Analytics"}
-        </button>
-      ))}
-    </div>
-  );
+  // const SegTabs = ({
+  //   value,
+  //   onChange,
+  // }: { value: "links" | "analytics"; onChange: (v: "links" | "analytics") => void }) => (
+  //   <div className="inline-flex rounded-2xl bg-gray-100 p-1 text-sm font-medium">
+  //     {(["links", "analytics"] as const).map((k) => (
+  //       <button
+  //         key={k}
+  //         type="button"
+  //         onClick={() => onChange(k)}
+  //         className={`px-4 py-2 rounded-2xl transition flex items-center gap-2 ${
+  //           value === k ? "bg-white shadow-sm" : "text-gray-600 hover:text-gray-800"
+  //         }`}
+  //       >
+  //         {k === "links" ? (
+  //           <svg width="16" height="16" viewBox="0 0 24 24"><path d="M3.9 12a5 5 0 0 1 5-5h3v2h-3a3 3 0 0 0 0 6h3v2h-3a5 5 0 0 1-5-5Zm6-1h4v2h-4v-2Zm5.2-4h3a5 5 0 1 1 0 10h-3v-2h3a3 3 0 1 0 0-6h-3V7Z" fill="currentColor"/></svg>
+  //         ) : (
+  //           <svg width="16" height="16" viewBox="0 0 24 24"><path d="M4 13h3v7H4v-7Zm6-6h3v13h-3V7Zm6 3h3v10h-3V10Z" fill="currentColor"/></svg>
+  //         )}
+  //         {k === "links" ? "Links" : "Analytics"}
+  //       </button>
+  //     ))}
+  //   </div>
+  // );
 
   const StatCard = ({ title, value, sub }: { title: string; value: string | number; sub?: string }) => (
     <div className="flex-1 min-w-[210px] rounded-2xl border bg-white p-5">
@@ -361,7 +500,7 @@ useEffect(() => {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M4 12h4v8H4v-8Zm6-6h4v14h-4V6Zm6 9h4v5h-4v-5Z" />
             </svg>
-            <span className="tabular-nums">{links.length}</span>
+            <span className="tabular-nums">{projectLinks.length}</span>
             <span>links</span>
           </div>
           <div className="inline-flex items-center gap-1.5">
@@ -395,15 +534,15 @@ useEffect(() => {
               </div>
             </div>
 
-            <SegTabs value={tab} onChange={setTab} />
+            {/* <SegTabs value={tab} onChange={setTab} /> */}
           </div>
 
           {/* summary stats */}
           {tab === "links" ? (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-2">
-              <StatCard title="Total Links" value={links.length} />
+              <StatCard title="Total Links" value={projectLinks.length} />
               <StatCard title="Total Clicks" value={totalClicks} />
-              <StatCard title="Avg. Clicks/Link" value={isNaN(totalClicks / links.length) ? "0" : (totalClicks / links.length).toFixed(2)} />
+              <StatCard title="Avg. Clicks/Link" value={isNaN(totalClicks / projectLinks.length) ? "0" : (totalClicks / projectLinks.length).toFixed(2)} />
             </div>          ) : (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-2">
               <StatCard title="Top Country" value="Ukraine" />
@@ -451,20 +590,30 @@ useEffect(() => {
                   className="mt-4 min-h-[100px] max-h-[320px] w-full rounded-2xl border px-4 py-2 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2 resize-y"
                 />
               </div>
+              <div className="rounded-2xl border p-4">
+                <ActivityChart data={activity}/>
+              </div>
+              
 
               {/* Add New Link */}
               <div className="rounded-2xl border p-4">
                 <h3 className="text-lg font-semibold mb-3">Add New Link</h3>
                 <div className="flex flex-col gap-3 md:flex-row">
                   <input
+                    value={link}
+                    type="url"
+                    onChange={(e) => setLink(e.target.value)}
                     placeholder="https://your-long-url.com"
                     className="h-11 w-full rounded-2xl border px-4 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
                   />
-                  <input
+                  {/* <input
+                    value={slug}
+                    onChange={(e) => setSlug(e.target.value)}
                     placeholder="custom-slug"
                     className="h-11 w-full md:max-w-[260px] rounded-2xl border px-4 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
-                  />
+                  /> */}
                   <button
+                    onClick={() => handleClick()}
                     type="button"
                     className="h-11 px-5 rounded-2xl bg-black text-white hover:bg-black/90 transition"
                   >
@@ -480,12 +629,12 @@ useEffect(() => {
                     <h3 className="text-lg font-semibold">Add From Existing Links</h3>
                     <p className="text-sm text-gray-500">Выберите уже созданные шорт-ссылки и добавьте их в проект.</p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  {/* <div className="flex items-center gap-2">
                     <input
                       placeholder="Search by slug or URL"
                       className="h-10 w-[260px] rounded-2xl border px-4 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
                     />
-                    <select
+                    {/* <select
                       className="h-10 rounded-2xl border px-3 outline-none"
                       value={sortOption}
                       onChange={(e) => handleSort(e.target.value)}
@@ -494,8 +643,8 @@ useEffect(() => {
                       <option value="least-clicks">Sort: Least clicks</option>
                       <option value="az">Sort: A–Z</option>
                       <option value="za">Sort: Z–A</option>
-                    </select>
-                  </div>
+                    </select> 
+                  </div> */}
                 </div>
 
                 <div className="mt-4 rounded-xl border bg-white">
@@ -536,16 +685,16 @@ useEffect(() => {
               </div>
 
               {/* Links Table */}
-              <div className="rounded-2xl border">
-                <div className="p-4 text-lg font-semibold">Links in this Project ({links.length})</div>
+              {/* <div className="rounded-2xl border">
+                <div className="p-4 text-lg font-semibold">Links in this Project ({projectLinks.length})</div>
                 <div className="border-t px-4 pb-4">
-                  <div className="grid grid-cols-[1.2fr_2fr_120px] gap-4 text-sm text-gray-500 px-2 pb-2">
+                  <div className="grid grid-cols-[1.2fr_2fr_120px] gap-4 text-sm mt-2 text-g ray-500 px-2 pb-2">
                     <div>Short Link</div>
                     <div>Original URL</div>
                     <div className="text-right">Clicks</div>
                   </div>
 
-                  {links.map((r) => (
+                  {projectLinks.map((r) => (
                     <div
                       key={r._id}
                       className="grid grid-cols-[1.2fr_2fr_120px] gap-4 items-center rounded-xl px-2 py-3 hover:bg-gray-50"
@@ -558,7 +707,46 @@ useEffect(() => {
                     </div>
                   ))}
                 </div>
-              </div>
+              </div> */}
+              <div className="mt-4 overflow-hidden rounded-xl border bg-white">
+  {/* Заголовок */}
+  <div className="grid grid-cols-[1.2fr_2fr_100px_30px] gap-4 px-4 py-3 text-sm text-gray-500">
+    <div>Short Link</div>
+    <div>Original URL</div>
+    <div className="text-right">Clicks</div>
+    <div></div>
+  </div>
+
+  {/* Строки */}
+  <div className="border-t">
+    {projectLinks.map((r) => (
+      <div
+        key={r._id}
+        className="grid grid-cols-[1.2fr_2fr_100px_30px] gap-4 items-center px-4 py-3 text-sm hover:bg-gray-50"
+      >
+        <a href={`/${r.shortId}`} className="font-medium text-gray-900">
+          rld.bio/{r.shortId}
+        </a>
+
+        <div className="truncate text-gray-600">{r.originalUrl}</div>
+
+        <div className="text-right">
+          <span className="inline-flex min-w-[3rem] justify-end rounded-xl bg-gray-100 px-2 py-1 text-xs font-medium">
+            {r.clicks}
+          </span>
+        </div>
+
+        {/* ❌ Крестик */}
+        <button
+          onClick={() => handleDeleteFromProject(r._id)}
+          className="flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition h-6 w-6"
+        >
+          ×
+        </button>
+      </div>
+    ))}
+  </div>
+</div>
             </div>
           )}
 
@@ -614,7 +802,7 @@ useEffect(() => {
             >
               Close
             </button>
-            <button className="px-4 py-2 rounded-2xl bg-black text-white hover:bg-black/90 transition">
+            <button onClick={handleSave} className="px-4 py-2 rounded-2xl bg-black text-white hover:bg-black/90 transition">
               Save
             </button>
           </div>

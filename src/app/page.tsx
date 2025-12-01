@@ -1,7 +1,6 @@
 import Main from "./components/Main/Main";
 import { getSession } from "@/lib/auth/auth";
 import Button from "@/app/components/UI/Button/Button";
-import FeatureCard from "@/app/components/FeatureCard/FeatureCard";
 import BenefitCard from "@/app/components/BenefitCard/BenefitCard";
 
 export default async function Home() {
@@ -27,7 +26,7 @@ export default async function Home() {
   <div className="container mx-auto  px-4 ">.
       <Main/>
       <div>
-        <div className="mt-16 rounded-3xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-8">
+        <div className="mt-20 from-primary/5 to-primary/10 rounded-3xl p-8">
           <div className="text-center">
             <h2 className="mb-3 text-3xl font-semibold">Get Started for Free</h2>
             <p className="mb-6 text-lg text-muted-foreground">
@@ -45,16 +44,16 @@ export default async function Home() {
         </div>
 
         {/* Features Section */}
-        <div className="mt-20 grid gap-6 md:grid-cols-3">
+        {/* <div className="mt-20 flex flex-col items-center gap-12">
           <FeatureCard title="Custom Links" description="Create memorable short links that reflect your brand" />
           <FeatureCard title="Analytics" description="Track clicks and engagement with detailed insights" />
           <FeatureCard title="QR Codes" description="Generate QR codes for your shortened links instantly" />
-        </div>
+        </div> */}
 
-        <div className="mt-20 space-y-8">
+        <div className="mt-30 space-y-8">
           <h2 className="text-center text-3xl font-semibold">All Features Included</h2>
 
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="flex flex-row justify-around flex-wrap gap-8">
             <BenefitCard
               title="Organize with Projects"
               description="Group your links into projects with custom colors and manage everything in one place"
@@ -66,19 +65,19 @@ export default async function Home() {
               icon="📊"
             />
             <BenefitCard
-              title="Team Collaboration"
-              description="Share projects with your team and collaborate on link management"
-              icon="👥"
+              title="Instant refresh of stats"
+              description="Get latest statistics about your links ASAP"
+              icon="⚡"
             />
             <BenefitCard
-              title="Custom Domains"
-              description="Use your own domain for branded short links that build trust"
+              title="Custom slugs"
+              description="Use your own slugs for branded short links that build trust"
               icon="🌐"
             />
           </div>
         </div>
 
-        <div className="mt-20 rounded-3xl border border-border bg-card p-12 text-center">
+        {/* <div className="mt-20 rounded-3xl border border-border bg-card p-12 text-center">
           <h2 className="mb-4 text-4xl font-semibold">Ready to get started?</h2>
           <p className="mb-8 text-lg text-muted-foreground">
             Join thousands of users managing their links with Relinxr — completely free
@@ -94,14 +93,14 @@ export default async function Home() {
               Sign in here
             </a>
           </p>
-        </div>
+        </div> */}
       {/* Footer */}
-      <footer className="mt-20 border-t border-border py-6 text-center text-sm text-muted-foreground">
+      {/* <footer className="mt-20 border-t border-border py-6 text-center text-sm text-muted-foreground">
         © 2025 Relinxr —{" "}
         <a href="#" className="underline">
           Privacy Policy
         </a>
-      </footer>
+      </footer> */}
       </div>
   </div>
 </main>

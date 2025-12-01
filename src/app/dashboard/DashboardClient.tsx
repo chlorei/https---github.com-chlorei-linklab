@@ -14,7 +14,8 @@ type BasicLink = {
   originalUrl: string;
   shortId: string;
   clicks: number;
-  createdAt: string; // уже сериализовано на сервере
+  createdAt: string;
+//   projectId: string;
 };
 
 type ActivityPoint = { day: string; clicks: number };
@@ -89,6 +90,7 @@ export default function DashboardClient({
                   clicks={l.clicks}
                   date={l.createdAt}
                   id={l._id}
+                  // projectId={l.projectId}
                 />
               ))}
             </div>
