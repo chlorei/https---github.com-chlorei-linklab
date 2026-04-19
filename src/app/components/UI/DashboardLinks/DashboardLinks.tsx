@@ -1,23 +1,30 @@
-import React from 'react'
-import Image from 'next/image'
+import React from "react";
+import Image from "next/image";
 
 type DashboardLinkProps = {
-    title: string,
-    count: number | string,
-    image: string
-}
+  title: string;
+  count: number | string;
+  image: string;
+};
+
 const DashboardLinks = (props: DashboardLinkProps) => {
-    return (
-        <div className='border w-full transition-transform duration-300 hover:scale-110 text-primary-text p-5 h-50 rounded-3xl xl:w-1/5 sm:w-2/5'>
-            <Image src={props.image} alt="Link Icon" width={30} height={30} className='mt-3 ml-3' />
+  return (
+    <div className="flex flex-col rounded-xl border border-border bg-card p-5 transition-all duration-300 hover:border-foreground/20 hover:shadow-md">
+      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary">
+        <Image
+          src={props.image}
+          alt=""
+          width={20}
+          height={20}
+          className="dark:invert"
+        />
+      </div>
+      <p className="mt-4 text-sm text-muted-foreground">{props.title}</p>
+      <h3 className="mt-1 text-2xl font-bold text-card-foreground">
+        {props.count}
+      </h3>
+    </div>
+  );
+};
 
-            <div className="ml-3">
-                <p className='text-sm text-gray-500 mt-2'>{props.title}</p>
-                <h3 className='text-lg mt-4 font-semibold'>{props.count}</h3>
-            </div>
-            
-        </div>
-    );
-}
-
-export default DashboardLinks
+export default DashboardLinks;

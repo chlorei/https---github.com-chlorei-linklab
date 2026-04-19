@@ -5,105 +5,77 @@ import BenefitCard from "@/app/components/BenefitCard/BenefitCard";
 
 export default async function Home() {
   const session = await getSession();
-  
-  
-
 
   if (session) {
-      return (
-        <main className="min-h-screen flex justify-center mt-40">
-          <div className="container mx-auto  px-4 ">
-              <Main/>
-          </div>
-        </main>
-      );
-    }
-
-
+    return (
+      <main className="min-h-screen flex justify-center mt-40">
+        <div className="container mx-auto px-4">
+          <Main />
+        </div>
+      </main>
+    );
+  }
 
   return (
- <main className="min-h-screen flex justify-center mt-40">
-  <div className="container mx-auto  px-4 ">.
-      <Main/>
-      <div>
-        <div className="mt-20 from-primary/5 to-primary/10 rounded-3xl p-8">
-          <div className="text-center">
-            <h2 className="mb-3 text-3xl font-semibold">Get Started for Free</h2>
-            <p className="mb-6 text-lg text-muted-foreground">
-              Sign up now to access all features including analytics, projects, and link management
-            </p>
-            <div className="flex items-center justify-center gap-4">
-              <Button href="/signup" >
-                Create Free Account
-              </Button>
-              <Button href="/signin">
-                Sign In
-              </Button>
+    <main className="min-h-screen">
+      <div className="container mx-auto px-4 pt-32 pb-20">
+        <Main />
+
+        {/* CTA Section */}
+        <section className="mt-24">
+          <div className="rounded-2xl border border-border bg-card p-8 md:p-12">
+            <div className="mx-auto max-w-2xl text-center">
+              <h2 className="mb-4 text-3xl font-bold text-card-foreground md:text-4xl">
+                Get Started for Free
+              </h2>
+              <p className="mb-8 text-lg text-muted-foreground">
+                Sign up now to access all features including analytics, projects, and link management
+              </p>
+              <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+                <Button href="/signup">Create Free Account</Button>
+                <Button href="/signin" variant="secondary">
+                  Sign In
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Features Section */}
-        {/* <div className="mt-20 flex flex-col items-center gap-12">
-          <FeatureCard title="Custom Links" description="Create memorable short links that reflect your brand" />
-          <FeatureCard title="Analytics" description="Track clicks and engagement with detailed insights" />
-          <FeatureCard title="QR Codes" description="Generate QR codes for your shortened links instantly" />
-        </div> */}
+        <section className="mt-24">
+          <div className="mb-12 text-center">
+            <h2 className="mb-4 text-3xl font-bold text-foreground md:text-4xl">
+              All Features Included
+            </h2>
+            <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+              Everything you need to manage and track your links effectively
+            </p>
+          </div>
 
-        <div className="mt-30 space-y-8">
-          <h2 className="text-center text-3xl font-semibold">All Features Included</h2>
-
-          <div className="flex flex-row justify-around flex-wrap gap-8">
+          <div className="flex flex-wrap justify-center gap-6">
             <BenefitCard
               title="Organize with Projects"
               description="Group your links into projects with custom colors and manage everything in one place"
-              icon="📁"
+              icon="folder"
             />
             <BenefitCard
               title="Advanced Analytics"
               description="Get detailed insights on clicks, geographic data, and link performance over time"
-              icon="📊"
+              icon="chart"
             />
             <BenefitCard
-              title="Instant refresh of stats"
-              description="Get latest statistics about your links ASAP"
-              icon="⚡"
+              title="Instant Refresh"
+              description="Get latest statistics about your links in real-time with instant updates"
+              icon="zap"
             />
             <BenefitCard
-              title="Custom slugs"
+              title="Custom Slugs"
               description="Use your own slugs for branded short links that build trust"
-              icon="🌐"
+              icon="globe"
             />
           </div>
-        </div>
-
-        {/* <div className="mt-20 rounded-3xl border border-border bg-card p-12 text-center">
-          <h2 className="mb-4 text-4xl font-semibold">Ready to get started?</h2>
-          <p className="mb-8 text-lg text-muted-foreground">
-            Join thousands of users managing their links with Relinxr — completely free
-          </p>
-          <div className="flex items-center justify-center gap-4">
-            <Button href="/signin">
-              Create Free Account
-            </Button>
-          </div>
-          <p className="mt-4 text-sm text-muted-foreground">
-            Already have an account?{" "}
-            <a href="#" className="font-medium text-foreground underline">
-              Sign in here
-            </a>
-          </p>
-        </div> */}
-      {/* Footer */}
-      {/* <footer className="mt-20 border-t border-border py-6 text-center text-sm text-muted-foreground">
-        © 2025 Relinxr —{" "}
-        <a href="#" className="underline">
-          Privacy Policy
-        </a>
-      </footer> */}
+        </section>
       </div>
-  </div>
-</main>
-    
+    </main>
   );
 }

@@ -73,7 +73,7 @@ export default async function RootLayout({
   const initialSession = s ? { id: s.id, email: s.email, name: s.name } : null;
 
   return (
-    <html lang="en" className={montserrat.variable}>
+    <html lang="en" className={`${montserrat.variable} bg-background`}>
       <body className="font-main leading-[1.75rem]">
         <Analytics />
         <SpeedInsights/>

@@ -1,22 +1,60 @@
-import React from 'react'
-import Link from 'next/link'
+import React from "react";
+import Link from "next/link";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils";
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        default:
+          "bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98]",
+        secondary:
+          "border border-border bg-card text-card-foreground hover:bg-secondary active:scale-[0.98]",
+        ghost:
+          "text-foreground hover:bg-secondary active:scale-[0.98]",
+        outline:
+          "border border-border bg-transparent text-foreground hover:bg-secondary active:scale-[0.98]",
+      },
+      size: {
+        default: "h-11 px-6 py-2",
+        sm: "h-9 px-4 text-xs",
+        lg: "h-12 px-8 text-base",
+        icon: "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+);
 
 type ButtonProps = {
-    href: string;
-    children: React.ReactNode;
+  href: string;
+  children: React.ReactNode;
+  variant?: VariantProps<typeof buttonVariants>["variant"];
+  size?: VariantProps<typeof buttonVariants>["size"];
+  className?: string;
 };
 
-const Button = ({ href, children} : ButtonProps) => {
+const Button = ({
+  href,
+  children,
+  variant = "default",
+  size = "default",
+  className,
+}: ButtonProps) => {
   return (
-    <div className="flex mt-5 justify-center justfiy-self-center w-full sm:w-1/3 lg:w-1/5 self-center rounded-2xl border p-2 font-semibold
-                            transition hover:bg-hover-button-bg hover:text-hover-button-text hover:shadow-lg hover:-translate-y-0.5
-                            active:translate-y-0 active:shadow-md
-                            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/60 focus-visible:ring-offset-2">
-        <Link href={href} prefetch={false} className="w-full h-full text-center">
-        {children}
-        </Link>
-    </div>
-  )
-}
+    <Link
+      href={href}
+      prefetch={false}
+      className={cn(buttonVariants({ variant, size }), className)}
+    >
+      {children}
+    </Link>
+  );
+};
 
-export default Button
+export default Button;

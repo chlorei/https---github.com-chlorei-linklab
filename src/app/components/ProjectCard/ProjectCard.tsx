@@ -388,9 +388,9 @@ useEffect(() => {
   // );
 
   const StatCard = ({ title, value, sub }: { title: string; value: string | number; sub?: string }) => (
-    <div className="flex-1 min-w-[210px] rounded-2xl border bg-white p-5">
-      <div className="text-sm text-gray-500">{title}</div>
-      <div className="mt-1 text-4xl font-bold tracking-tight">{value}</div>
+    <div className="flex-1 min-w-[180px] rounded-xl border border-border bg-card p-4">
+      <div className="text-sm text-muted-foreground">{title}</div>
+      <div className="mt-1 text-2xl font-bold text-card-foreground tracking-tight">{value}</div>
       {sub && <div className="mt-1 text-xs text-emerald-600">{sub}</div>}
     </div>
   );
@@ -399,13 +399,7 @@ useEffect(() => {
   return (
     <div
       onClick={() => setOpen(true)}
-      className="
-        rrelative flex flex-col w-full
-    rounded-2xl border border-gray-200/80 dark:border-white/10
-    bg-white dark:bg-neutral-900
-    shadow-sm hover:shadow-md transition-all duration-200 ease-out
-    hover:-translate-y-0.5 overflow-hidden 
-      "
+      className="relative flex flex-col cursor-pointer rounded-xl border border-border bg-card transition-all duration-200 hover:border-foreground/20 hover:shadow-md"
       role="article"
       aria-label={title}
     >
@@ -435,11 +429,11 @@ useEffect(() => {
           </div>
 
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
+            <h3 className="text-base font-semibold text-card-foreground truncate">
               {title}
             </h3>
             {description && (
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+              <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
                 {description}
               </p>
             )}
@@ -450,11 +444,10 @@ useEffect(() => {
   <button
     onClick={(e) => {
       e.stopPropagation()
-      setMiniMenuOpen((prev) => !prev) // ← toggle
+      setMiniMenuOpen((prev) => !prev)
     }}
     type="button"
-    className="p-2 -mr-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700
-               dark:hover:bg-white/5 dark:text-gray-400"
+    className="p-2 -mr-2 rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
     aria-label="Open folder menu"
   >
     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -487,8 +480,8 @@ useEffect(() => {
 </div>
         </div>
 
-        {/* метрики */}
-        <div className="mt-4 flex items-center gap-6 text-sm text-gray-600 dark:text-gray-400">
+        {/* metrics */}
+        <div className="mt-4 flex items-center gap-5 text-sm text-muted-foreground">
           <div className="inline-flex items-center gap-1.5">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M4 12h4v8H4v-8Zm6-6h4v14h-4V6Zm6 9h4v5h-4v-5Z" />

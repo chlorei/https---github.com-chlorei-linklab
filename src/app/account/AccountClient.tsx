@@ -1,6 +1,7 @@
 "use client";
+
 import React, { useMemo, useState } from "react";
-import Image from "next/image";
+import { LogOut, User, Mail } from "lucide-react";
 import TextType from "@/app/components/UI/TextType/TextType";
 import { logoutAction, updateProfileAction } from "@/app/actions/account";
 import { useFormStatus } from "react-dom";
@@ -13,33 +14,35 @@ function SubmitBtn({ children }: { children: React.ReactNode }) {
     <button
       type="submit"
       disabled={pending}
-      className="rounded-2xl border px-5 py-3 font-semibold transition
-                 hover:bg-hover-button-bg hover:text-hover-button-text
-                 disabled:opacity-60 disabled:cursor-not-allowed"
+      className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
     >
       {pending ? "Saving..." : children}
     </button>
   );
 }
 
-export default function AccountClient({ initialSession }: { initialSession: SessionLite }) {
-  // разбираем имя аккуратно (без миганий)
+export default function AccountClient({
+  initialSession,
+}: {
+  initialSession: SessionLite;
+}) {
   const [firstInit, lastInit] = useMemo(() => {
     const parts = (initialSession.name || "").trim().split(/\s+/);
     return [parts[0] ?? "", parts.slice(1).join(" ") ?? ""];
   }, [initialSession.name]);
 
   const [firstName, setFirstName] = useState(firstInit);
-  const [lastName,  setLastName]  = useState(lastInit);
-  const [email,     setEmail]     = useState(initialSession.email);
-  const [error,     setError]     = useState<string | null>(null);
-  const [ok,        setOk]        = useState<string | null>(null);
+  const [lastName, setLastName] = useState(lastInit);
+  const [email, setEmail] = useState(initialSession.email);
+  const [error, setError] = useState<string | null>(null);
+  const [ok, setOk] = useState<string | null>(null);
 
   async function onUpdate(formData: FormData) {
-    setError(null); setOk(null);
+    setError(null);
+    setOk(null);
     try {
-      await updateProfileAction(formData); // server action сделает валидацию/сохранение
-      setOk("Profile updated");
+      await updateProfileAction(formData);
+      setOk("Profile updated successfully");
     } catch (e: unknown) {
       if (e instanceof Error) {
         setError(e.message);
@@ -50,92 +53,116 @@ export default function AccountClient({ initialSession }: { initialSession: Sess
   }
 
   return (
-    <div className="container text-primary-text mx-auto px-4 mt-40">
-      <div className="flex justify-between flex-col md:flex-row w-full mb-10 gap-5">
-        <div>
-          <TextType
-            textColors={["text-primary-text"]}
-            text={["Account Settings"]}
-            typingSpeed={25}
-            pauseDuration={1500}
-            showCursor
-            cursorCharacter=""
-            className="text-4xl text-primary-text text-center md:text-left"
-          />
+    <div className="container mx-auto px-4 pt-32 pb-20">
+      <div className="mx-auto max-w-2xl">
+        {/* Header */}
+        <div className="mb-8 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div>
+            <TextType
+              textColors={["text-foreground"]}
+              text={["Account Settings"]}
+              typingSpeed={25}
+              pauseDuration={1500}
+              showCursor
+              cursorCharacter=""
+              className="text-3xl font-bold text-foreground sm:text-4xl"
+            />
+            <p className="mt-2 text-muted-foreground">
+              Manage your account information
+            </p>
+          </div>
+
+          <form action={logoutAction}>
+            <button
+              type="submit"
+              className="flex items-center justify-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-2.5 text-sm font-semibold text-destructive transition-all hover:bg-destructive hover:text-white"
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </button>
+          </form>
         </div>
 
-        {/* ЛОГАУТ через server action — без fetch и без window.location */}
-        <form action={logoutAction}>
-          <button
-            type="submit"
-            className="flex items-center justify-center w-full sm:w-40 rounded-2xl border p-2 font-semibold
-                       bg-red-400 text-primary-text transition hover:bg-red-600 hover:text-hover-button-text hover:shadow-lg
-                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2"
-          >
-            <Image src="/icons/log-out.svg" alt="Logout Icon" width={22} height={22} className="mr-2" />
-            Logout
-          </button>
-        </form>
-      </div>
+        {/* Profile Card */}
+        <div className="rounded-2xl border border-border bg-card p-6">
+          <h3 className="text-lg font-semibold text-card-foreground">
+            Profile Information
+          </h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Update your profile information below
+          </p>
 
-      <div className="flex flex-col border-2 rounded-2xl p-5">
-        <h3 className="font-bold w-full">Profile Information</h3>
-        <p className="text-sm w-full text-gray-500 mt-2">Update your profile information below</p>
+          <form action={onUpdate} className="mt-6 flex flex-col gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="relative">
+                <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <input
+                  name="firstName"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  type="text"
+                  placeholder="First name"
+                  className="w-full rounded-xl border border-border bg-card py-3 pl-11 pr-4 text-card-foreground placeholder:text-muted-foreground outline-none transition-all focus:border-foreground/30 focus:ring-2 focus:ring-ring/20"
+                />
+              </div>
+              <input
+                name="lastName"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                type="text"
+                placeholder="Last name"
+                className="w-full rounded-xl border border-border bg-card py-3 px-4 text-card-foreground placeholder:text-muted-foreground outline-none transition-all focus:border-foreground/30 focus:ring-2 focus:ring-ring/20"
+              />
+            </div>
 
-        <form action={onUpdate} className="mt-6 flex flex-col gap-5">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <input
-              name="firstName"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              type="text"
-              placeholder="First name"
-              className="h-11 w-full rounded-2xl border px-4 outline-none transition
-                         focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
-            />
-            <input
-              name="lastName"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              type="text"
-              placeholder="Last name"
-              className="h-11 w-full rounded-2xl border px-4 outline-none transition
-                         focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
-            />
-          </div>
+            <div className="relative">
+              <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <input
+                name="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                type="email"
+                placeholder="Email"
+                required
+                className="w-full rounded-xl border border-border bg-card py-3 pl-11 pr-4 text-card-foreground placeholder:text-muted-foreground outline-none transition-all focus:border-foreground/30 focus:ring-2 focus:ring-ring/20"
+              />
+            </div>
 
-          <input
-            name="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            type="email"
-            placeholder="Email"
-            required
-            className="h-11 w-full rounded-2xl border px-4 outline-none transition
-                       focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
-          />
+            {/* Messages */}
+            {error && (
+              <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">
+                {error}
+              </div>
+            )}
+            {ok && (
+              <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-sm text-green-600">
+                {ok}
+              </div>
+            )}
 
-          {/* Сообщения об ошибке/успехе */}
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-          {ok && <p className="text-green-600 text-sm">{ok}</p>}
-
-          <div className="flex gap-3 justify-end">
-            <button
-              type="button" // ← НЕ submit
-              onClick={() => {
-                setFirstName(firstInit);
-                setLastName(lastInit);
-                setEmail(initialSession.email);
-                setError(null); setOk(null);
-              }}
-              className="rounded-2xl border px-5 py-3 font-semibold transition hover:bg-hover-button-bg hover:text-hover-button-text"
-            >
-              Cancel
-            </button>
-
-            <SubmitBtn>Save Changes</SubmitBtn>
-          </div>
-        </form>
+            {/* Actions */}
+            <div className="mt-2 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setFirstName(firstInit);
+                  setLastName(lastInit);
+                  setEmail(initialSession.email);
+                  setError(null);
+                  setOk(null);
+                }}
+                className="rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-medium text-card-foreground transition-all hover:bg-secondary"
+              >
+                Cancel
+              </button>
+              <SubmitBtn>Save Changes</SubmitBtn>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

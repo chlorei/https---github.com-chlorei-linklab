@@ -1,29 +1,29 @@
 "use client";
 
+import { useState } from "react";
+import { Plus, FolderOpen } from "lucide-react";
+import { useFormStatus } from "react-dom";
 import TextType from "@/app/components/UI/TextType/TextType";
 import ProjectCard from "../components/ProjectCard/ProjectCard";
 import Modal from "../components/ProjectModal/ProjectModal";
 import ColorPicker from "@/app/components/UI/ColorPicker/ColorPicker";
-import { useState } from "react";
 import { createProjectAction } from "@/app/actions/projects";
 import colorMap from "../utils/colorMap";
-import { useFormStatus } from "react-dom";
 
 type ColorName = keyof typeof colorMap;
 
 type ProjectListItem = {
-  _id: string;               
+  _id: string;
   title: string;
   description?: string;
-  color: ColorName;          
-  createdAt?: string;       
-  updatedAt?: string;        
+  color: ColorName;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 type Props = {
-  // topCountry: { day: string; visits: number } | null;
   sessionId: string | null;
-  colors: ColorName[];       
+  colors: ColorName[];
   projects: ProjectListItem[];
   activityAll: Record<string, { day: string; clicks: number }[]>;
 };
@@ -34,7 +34,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="px-4 py-2 rounded-2xl bg-black text-white hover:bg-black/90 transition disabled:opacity-60"
+      className="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.98] disabled:opacity-60 sm:w-auto"
       aria-busy={pending}
     >
       {pending ? "Creating..." : "Create Project"}
@@ -42,172 +42,155 @@ function SubmitButton() {
   );
 }
 
-export default function ProjectsClient({ sessionId, colors, projects, activityAll}: Props) {
+export default function ProjectsClient({
+  sessionId,
+  colors,
+  projects,
+  activityAll,
+}: Props) {
   const [open, setOpen] = useState(false);
   const [color, setColor] = useState<ColorName>("mint");
-  const [links] = useState<{ _id: string; shortId: string; originalUrl: string; clicks: number }[]>([]);
 
-
-
-  // useEffect(() => {
-  //   const fetchLinks = async () => {
-  //     try {
-  //       const res = await fetch(`/api/links/find?projectid=null`, {
-  //         method: "GET",
-  //         cache: "no-store",
-  //       });
-  //       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  //       const data = await res.json();
-  //       setLinks(data);
-  //       console.log("Links for gayы project:", data);
-  //     } catch (error) {
-  //       console.error("Error fetching links for project:", error);
-  //     }
-  //   };
-  //   fetchLinks();
-  // }, []);
-
-
-  console.log("bruvburv:", links);  
-  console.log("ProjectsClient rendered with projects:", projects);
   return (
     <>
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between w-full mb-10 gap-5">
-        <div className="flex flex-col">
+      <div className="mb-8 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+        <div>
           <TextType
-            textColors={["text-primary-text"]}
+            textColors={["text-foreground"]}
             text={["Projects"]}
             typingSpeed={25}
             pauseDuration={1500}
             showCursor
             cursorCharacter=""
-            className="text-4xl text-primary-text text-left"
+            className="text-3xl font-bold text-foreground sm:text-4xl"
           />
-          <TextType
-            textColors={["text-primary-text"]}
-            text={["Organize your links into projects for better management"]}
-            typingSpeed={30}
-            pauseDuration={1500}
-            showCursor
-            cursorCharacter=""
-            className="text-start text-gray-500 mt-2"
-          />
+          <p className="mt-2 text-muted-foreground">
+            Organize your links into projects for better management
+          </p>
         </div>
 
         <button
           onClick={() => setOpen(true)}
-          className="inline-flex items-center justify-center mt-2 md:mt-0 rounded-2xl border px-4 py-2 font-semibold
-                     transition hover:bg-hover-button-bg hover:text-hover-button-text hover:shadow-lg hover:-translate-y-0.5
-                     active:translate-y-0 active:shadow-md focus-visible:outline-none focus-visible:ring-2
-                     focus-visible:ring-black/60 focus-visible:ring-offset-2 w-full sm:w-auto"
           disabled={!sessionId}
           title={sessionId ? "" : "Log in to create a project"}
+          className="flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          + Add project
+          <Plus className="h-4 w-4" />
+          Add Project
         </button>
       </div>
 
       {/* Grid */}
       {projects.length === 0 ? (
-        <div className="w-full rounded-2xl border border-dashed p-8 text-center text-gray-500">
-          <p className="text-lg">No projects yet</p>
-          <p className="mt-1">Create your first project to start organizing links.</p>
-          <div className="mt-4">
-            <button
-              onClick={() => setOpen(true)}
-              className="rounded-2xl bg-black text-white px-4 py-2 hover:bg-black/90 transition"
-              disabled={!sessionId}
-            >
-              Create Project
-            </button>
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 py-16 text-center">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-secondary">
+            <FolderOpen className="h-6 w-6 text-muted-foreground" />
           </div>
+          <p className="text-lg font-medium text-card-foreground">
+            No projects yet
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Create your first project to start organizing links
+          </p>
+          <button
+            onClick={() => setOpen(true)}
+            disabled={!sessionId}
+            className="mt-6 flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.98] disabled:opacity-60"
+          >
+            <Plus className="h-4 w-4" />
+            Create Project
+          </button>
         </div>
       ) : (
-        <div
-          className="
-          flex gap-3 flex-wrap align-center justify-between
-          "
-        >
-          {sessionId && projects.map((card) => (
-            <ProjectCard
-              sessionId={sessionId}
-              key={card._id}
-              projectId={card._id}                           
-              title={card.title}
-              description={card.description}
-              color={card.color as ColorName}                 
-              linksCount={0}
-              clicks={0}
-              activity={activityAll[card._id] || []}
-              // emptyLinks={links}
-            />
-          ))}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {sessionId &&
+            projects.map((card) => (
+              <ProjectCard
+                sessionId={sessionId}
+                key={card._id}
+                projectId={card._id}
+                title={card.title}
+                description={card.description}
+                color={card.color as ColorName}
+                linksCount={0}
+                clicks={0}
+                activity={activityAll[card._id] || []}
+              />
+            ))}
         </div>
       )}
 
       {/* Create Modal */}
-      <Modal open={open} onClose={() => setOpen(false)} title="Create New Project">
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Create New Project"
+      >
         <form
           action={async (fd) => {
             const res = await createProjectAction(fd);
             if (res.ok) setOpen(false);
             else alert(res.error ?? "Failed");
           }}
-          className="ma x-h-[80vh] overflow-y-auto p-2"
+          className="max-h-[80vh] overflow-y-auto"
         >
-          <div className="px-1">
-            <h2 className="text-2xl font-bold">Create New Project</h2>
-            <p className="text-gray-500 mt-1">Add a new project to organize your links</p>
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-card-foreground">
+              Create New Project
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Add a new project to organize your links
+            </p>
           </div>
 
-          <div className="mt-6 space-y-5">
+          <div className="space-y-4">
             {/* Title */}
             <div>
-              <label className="block text-sm font-semibold mb-2">Project Name</label>
+              <label className="mb-2 block text-sm font-medium text-card-foreground">
+                Project Name
+              </label>
               <input
                 name="title"
                 placeholder="My Awesome Project"
                 autoFocus
-                className="h-11 w-full rounded-2xl border px-4 outline-none transition
-                           focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
                 required
+                className="w-full rounded-xl border border-border bg-card px-4 py-3 text-card-foreground placeholder:text-muted-foreground outline-none transition-all focus:border-foreground/30 focus:ring-2 focus:ring-ring/20"
               />
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-semibold mb-2">Description</label>
+              <label className="mb-2 block text-sm font-medium text-card-foreground">
+                Description
+              </label>
               <textarea
                 name="description"
                 placeholder="Describe your project..."
-                className="min-h-[96px] max-h-[320px] w-full rounded-2xl border px-4 py-2 outline-none transition
-                           focus:ring-2 focus:ring-black/60 focus:ring-offset-2 resize-y"
+                className="min-h-[96px] w-full resize-y rounded-xl border border-border bg-card px-4 py-3 text-card-foreground placeholder:text-muted-foreground outline-none transition-all focus:border-foreground/30 focus:ring-2 focus:ring-ring/20"
               />
             </div>
 
-            {/* Color (names) */}
+            {/* Color */}
             <div>
-              <label className="block text-sm font-semibold mb-2">Project Color</label>
-              {/* 
-                 Предполагаем, что твой ColorPicker умеет работать с ИМЕНАМИ цветов.
-              */}
+              <label className="mb-2 block text-sm font-medium text-card-foreground">
+                Project Color
+              </label>
               <ColorPicker
                 value={color}
                 onChange={(c: string) => setColor(c as ColorName)}
-                colors={colors} // массив имён (["blue","mint",...])
+                colors={colors}
               />
-              {/* гарантируем попадание в FormData */}
               <input type="hidden" name="color" value={color} />
             </div>
           </div>
 
           {/* Footer */}
-          <div className="flex flex-col sm:flex-row justify-end gap-3 mt-8">
+          <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="px-4 py-2 rounded-2xl border hover:bg-gray-50 transition w-full sm:w-auto"
+              className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium text-card-foreground transition-all hover:bg-secondary sm:w-auto"
             >
               Cancel
             </button>

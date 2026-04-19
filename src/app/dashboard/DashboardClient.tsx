@@ -1,13 +1,12 @@
-// app/dashboard/DashboardClient.tsx
 "use client";
 
 import React from "react";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import TextType from "@/app/components/UI/TextType/TextType";
 import DashboardLinks from "@/app/components/UI/DashboardLinks/DashboardLinks";
 import ActivityChart from "@/app/components/ActivityChart/ActivityChart";
-import RecentLinks from "@/app/components/UI/RecentLinks/RecentLinks"; // проверь путь
-
+import RecentLinks from "@/app/components/UI/RecentLinks/RecentLinks";
 
 type BasicLink = {
   _id: string;
@@ -15,7 +14,6 @@ type BasicLink = {
   shortId: string;
   clicks: number;
   createdAt: string;
-//   projectId: string;
 };
 
 type ActivityPoint = { day: string; clicks: number };
@@ -27,9 +25,7 @@ type Props = {
   links: BasicLink[];
   amountVisits: number;
   activity: ActivityPoint[];
-  /** Опционально: отсортированный список стран по кликам */
   locations?: CountryRow[];
-  /** Опционально: топ-страна (name/clicks) */
   topCountry?: { name: string; clicks: number } | null;
 };
 
@@ -38,72 +34,95 @@ export default function DashboardClient({
   links,
   amountVisits,
   activity,
-  locations,
   topCountry,
 }: Props) {
-  // const countriesCount = locations?.length ?? 0;
-  console.log("Top country in DashboardClient:", topCountry);
-  console.log("Locations in DashboardClient:", locations);
   return (
-    <div className="container mx-auto px-4 mt-40">
-      <div className="flex w-full flex-col items-center">
-        <div className="relative h-[60px] text-primary-text flex items-center justify-center">
+    <div className="container mx-auto px-4 pt-32 pb-20">
+      <div className="mx-auto flex w-full max-w-4xl flex-col items-center">
+        {/* Greeting */}
+        <div className="relative flex h-[60px] items-center justify-center text-foreground">
           <TextType
-            textColors={["text-primary-text"]}
+            textColors={["text-foreground"]}
             text={[greetingsText]}
             typingSpeed={25}
             pauseDuration={3000}
             showCursor
             cursorCharacter=""
-            className="text-4xl text-primary-text text-center"
+            className="text-3xl font-bold text-foreground sm:text-4xl"
           />
         </div>
 
-        <div className="flex flex-col mt-20 w-full max-w-2xl self-center rounded-2xl p-10">
-          <div className="flex flex-row flex-wrap w-full justify-center gap-5 md:gap-10 md:justify-between">
-            <DashboardLinks image="/icons/link-2.svg" title="Total Links" count={links.length} />
-            <DashboardLinks image="/icons/corner-down-right.svg" title="Total Clicks" count={amountVisits} />
-            <DashboardLinks image="/icons/globe.svg" title="Top countries" count={topCountry?.name ?? "Not available"} />
-            <DashboardLinks image="/icons/activity.svg" title="Active Projects" count={0} />
+        {/* Stats Grid */}
+        <div className="mt-12 grid w-full grid-cols-2 gap-4 md:grid-cols-4">
+          <DashboardLinks
+            image="/icons/link-2.svg"
+            title="Total Links"
+            count={links.length}
+          />
+          <DashboardLinks
+            image="/icons/corner-down-right.svg"
+            title="Total Clicks"
+            count={amountVisits}
+          />
+          <DashboardLinks
+            image="/icons/globe.svg"
+            title="Top Country"
+            count={topCountry?.name ?? "N/A"}
+          />
+          <DashboardLinks
+            image="/icons/activity.svg"
+            title="Active Projects"
+            count={0}
+          />
+        </div>
+
+        {/* Activity Chart */}
+        <div className="mt-8 w-full rounded-2xl border border-border bg-card p-6">
+          <h3 className="text-lg font-semibold text-card-foreground">
+            Activity Overview
+          </h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Your click activity over the past week
+          </p>
+          <div className="mt-6">
+            <ActivityChart data={activity} />
+          </div>
+        </div>
+
+        {/* Recent Links */}
+        <div className="mt-8 w-full rounded-2xl border border-border bg-card p-6">
+          <h3 className="text-lg font-semibold text-card-foreground">
+            Recent Links
+          </h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Your most recently shortened links
+          </p>
+          <div className="mt-6 space-y-3">
+            {links.length === 0 && (
+              <p className="py-8 text-center text-muted-foreground">
+                No links found. Start by creating a new shortened link!
+              </p>
+            )}
+            {links.slice(0, 4).map((l) => (
+              <RecentLinks
+                key={l._id}
+                title={l.originalUrl}
+                url={l.shortId}
+                clicks={l.clicks}
+                date={l.createdAt}
+                id={l._id}
+              />
+            ))}
           </div>
 
-          <div className="border-2 rounded-2xl mt-20 p-5">
-            <h3 className="font-bold">Activity Overview</h3>
-            <p className="text-sm text-gray-500 mt-2">Here you can find an overview of your recent activities.</p>
-            <div className="mt-5">
-              <ActivityChart data={activity} />
-            </div>
-          </div>
-
-          <div className="flex flex-col border-2 rounded-2xl mt-17 p-5">
-            <h3 className="font-bold w-full">Recent Links</h3>
-            <p className="text-sm w-full text-gray-500 mt-2">Your most recently shortened links</p>
-            <div className="mt-5">
-              {links.length === 0 && (
-                <p className="text-gray-500">No links found. Start by creating a new shortened link!</p>
-              )}
-              {links.slice(0, 4).map((l) => (
-                <RecentLinks
-                  key={l._id}
-                  title={l.originalUrl}
-                  url={l.shortId}
-                  clicks={l.clicks}
-                  date={l.createdAt}
-                  id={l._id}
-                  // projectId={l.projectId}
-                />
-              ))}
-            </div>
-
-            <div className="flex mt-5 justify-center justfiy-self-center w-full sm:w-2/3 lg:w-1/2 self-center rounded-2xl border p-2 font-semibold
-                            transition hover:bg-hover-button-bg hover:text-hover-button-text hover:shadow-lg hover:-translate-y-0.5
-                            active:translate-y-0 active:shadow-md
-                            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/60 focus-visible:ring-offset-2">
-              <Link href="/links" prefetch={false} className="w-full h-full text-center">
-                View all links!
-              </Link>
-            </div>
-          </div>
+          <Link
+            href="/links"
+            prefetch={false}
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card py-3 text-sm font-semibold text-card-foreground transition-all duration-200 hover:bg-secondary active:scale-[0.98]"
+          >
+            View all links
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </div>
     </div>

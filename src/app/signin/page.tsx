@@ -1,133 +1,18 @@
-// "use client";
-
-// import Link from 'next/link'
-// import React from 'react'
-
-// const Main = () => {
-
-//   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-//   e.preventDefault();
-//   const form = e.currentTarget;
-//   const fd = new FormData(form);
-//   const email = (fd.get("email") as string)?.trim().toLowerCase();
-//   const password = (fd.get("password") as string) ?? "";
-
-//   try {
-//     const res = await fetch("/api/auth/login", {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify({ email, password }),
-//     });
-
-//     let data: { ok?: boolean; error?: string };
-//     try { data = await res.json(); }
-//     catch {
-//       const txt = await res.text();
-//       throw new Error(`Bad JSON (${res.status}): ${txt}`);
-//     }
-
-//     if (!res.ok || !data?.ok) {
-//       throw new Error(data?.error || `Request failed (${res.status})`);
-//     }
-
-//     window.location.href = "/dashboard";
-//   } catch (err: unknown) {
-//     if (err instanceof Error) {
-//       alert(err.message || "Something went wrong.");
-//       console.error("Login error:", err);
-//     } else {
-//       alert("Something went wrong.");
-//       console.error("Login error:", err);
-//     }
-//   }
-// };
-
-//   return (
-//     <div className="container mx-auto px-4 text-primary-text">
-//       <div className="flex min-h-screen items-center justify-center py-8 sm:py-12">
-//         <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 sm:p-8">
-//           <h2 className="text-center font-bold text-2xl sm:text-3xl text-primary-text">
-//             Sign in
-//           </h2>
-
-//           <form className="mt-6 flex flex-col gap-5 text-foreground" action="" onSubmit={handleSubmit}>
-//             <div>
-//               <input
-//                 name="email"
-//                 type="email"
-//                 placeholder="Email"
-//                 autoComplete="email"
-//                 className="h-11 w-full rounded-2xl border px-4 outline-none transition
-//                            focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
-//               />
-//             </div>
-
-//             <div>
-//               <input
-//                 name="password"
-//                 type="password"
-//                 placeholder="Password"
-//                 autoComplete="password"
-//                 className="h-11 w-full rounded-2xl border px-4 outline-none transition
-//                            focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
-//               />
-//             </div>
-
-//             <button
-//               type="submit"
-//               className="w-full sm:w-2/3 lg:w-1/2 self-center rounded-2xl border px-5 py-3 font-semibold
-//                          transition hover:bg-hover-button-bg hover:text-hover-button-text hover:shadow-lg hover:-translate-y-0.5
-//                          active:translate-y-0 active:shadow-md
-//                          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/60 focus-visible:ring-offset-2"
-//             >
-//               Sign in
-//             </button>
-
-//             <p className="text-center text-sm text-muted-foreground">
-//               Don’t have an account?{' '}
-//               <Link href="/signup" className="underline underline-offset-4 hover:no-underline">
-//                 Sign up
-//               </Link>
-//             </p>
-//           </form>
-//         </div>
-//       </div>
-//     </div>
-//   )
-// }
-
-// export default Main
-
-
 "use client";
+
 import { useState } from "react";
-import { useFormStatus } from "react-dom";
 import { loginAction } from "@/app/actions/auth";
 import Link from "next/link";
-import { Eye, EyeOff } from "lucide-react";
-
-
-
-function SubmitBtn() {
-  const { pending } = useFormStatus();
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="rounded-2xl border px-5 py-3 font-semibold disabled:opacity-60"
-    >
-      {pending ? "Signing in..." : "Sign in"}
-    </button>
-  );
-}
+import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 
 export default function SignIn() {
   const [error, setError] = useState<string | null>(null);
   const [show, setShow] = useState<boolean>(false);
-
+  const [loading, setLoading] = useState(false);
 
   async function handle(formData: FormData) {
     setError(null);
+    setLoading(true);
     try {
       await loginAction(formData);
     } catch (e: unknown) {
@@ -136,66 +21,87 @@ export default function SignIn() {
       } else {
         setError("Login failed");
       }
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <div className="container mx-auto px-4 text-primary-text">
+    <div className="container mx-auto px-4">
       <div className="flex min-h-screen items-center justify-center py-8 sm:py-12">
-        <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 sm:p-8">
-          <h2 className="text-center font-bold text-2xl sm:text-3xl text-primary-text">
-            Sign in
-          </h2>
+        <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8">
+          <div className="mb-8 text-center">
+            <h1 className="text-2xl font-bold text-card-foreground sm:text-3xl">
+              Welcome back
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Sign in to your account to continue
+            </p>
+          </div>
 
-          <form className="mt-6 flex flex-col gap-5 text-foreground" action={handle}>
-            <div>
+          <form className="flex flex-col gap-4" action={handle}>
+            {/* Email */}
+            <div className="relative">
+              <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+              </div>
               <input
                 name="email"
                 type="email"
                 placeholder="Email"
                 autoComplete="email"
-                className="h-11 w-full rounded-2xl border px-4 outline-none transition
-                           focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
+                required
+                className="w-full rounded-xl border border-border bg-card py-3 pl-11 pr-4 text-card-foreground placeholder:text-muted-foreground outline-none transition-all focus:border-foreground/30 focus:ring-2 focus:ring-ring/20"
               />
             </div>
 
-           <div className="relative">
-      <input
-        name="password"
-        type={show ? "text" : "password"}
-        placeholder="Password"
-        autoComplete="password"
-        className="h-11 w-full rounded-2xl border px-4 pr-10 outline-none transition
-                   focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
-      />
+            {/* Password */}
+            <div className="relative">
+              <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2">
+                <Lock className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <input
+                name="password"
+                type={show ? "text" : "password"}
+                placeholder="Password"
+                autoComplete="current-password"
+                required
+                className="w-full rounded-xl border border-border bg-card py-3 pl-11 pr-11 text-card-foreground placeholder:text-muted-foreground outline-none transition-all focus:border-foreground/30 focus:ring-2 focus:ring-ring/20"
+              />
+              <button
+                type="button"
+                onClick={() => setShow((p) => !p)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
 
-      <button
-        type="button"
-        onClick={() => setShow((p) => !p)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-black/60 hover:text-black"
-      >
-        {show ? <EyeOff size={18} /> : <Eye size={18} />}
-      </button>
-    </div>
+            {/* Error */}
+            {error && (
+              <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">
+                {error}
+              </div>
+            )}
 
+            {/* Submit */}
             <button
-              onSubmit={SubmitBtn}
               type="submit"
-              className="w-full sm:w-2/3 lg:w-1/2 self-center rounded-2xl border px-5 py-3 font-semibold
-                         transition hover:bg-hover-button-bg hover:text-hover-button-text hover:shadow-lg hover:-translate-y-0.5
-                         active:translate-y-0 active:shadow-md
-                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/60 focus-visible:ring-offset-2"
+              disabled={loading}
+              className="mt-2 w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Sign in
+              {loading ? "Signing in..." : "Sign in"}
             </button>
 
-            <p className="text-center text-sm text-muted-foreground">
-              Don’t have an account?{' '}
-              <Link href="/signup" className="underline underline-offset-4 hover:no-underline">
+            <p className="mt-4 text-center text-sm text-muted-foreground">
+              {"Don't have an account? "}
+              <Link
+                href="/signup"
+                className="font-medium text-foreground underline underline-offset-4 transition-colors hover:text-muted-foreground"
+              >
                 Sign up
               </Link>
             </p>
-            {error && <p className="text-red-500 text-sm">{error}</p>}
           </form>
         </div>
       </div>

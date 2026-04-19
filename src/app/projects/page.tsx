@@ -263,14 +263,15 @@ export default async function Page() {
 
   // console.log("BABADUK in Projects Page:", topCountry);
   return (
-    <div className="container text-primary-text mx-auto px-4 mt-40">
-      <ProjectsClient
-        // topCountry={topCountry}
-        activityAll={activityMap}
-        sessionId={session?.id ?? null}
-        colors={colorNames}
-        projects={projects}
-      />
+    <div className="container mx-auto px-4 pt-32 pb-20">
+      <div className="mx-auto max-w-4xl">
+        <ProjectsClient
+          activityAll={activityMap}
+          sessionId={session?.id ?? null}
+          colors={colorNames}
+          projects={projects}
+        />
+      </div>
     </div>
   );
 }

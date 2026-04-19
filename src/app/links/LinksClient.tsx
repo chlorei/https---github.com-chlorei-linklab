@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import Link from "next/link";
+import { Search, Plus } from "lucide-react";
 import TextType from "@/app/components/UI/TextType/TextType";
 import RecentLinks from "@/app/components/UI/RecentLinks/RecentLinks";
-import Link from "next/link";
-
 
 type LinkItem = {
   _id: string;
@@ -16,9 +16,6 @@ type LinkItem = {
 };
 
 export default function LinksClient({ links }: { links: LinkItem[] }) {
-
-
-
   const [q, setQ] = useState("");
 
   const filtered = useMemo(() => {
@@ -26,76 +23,90 @@ export default function LinksClient({ links }: { links: LinkItem[] }) {
     if (!s) return links;
     return links.filter(
       (l) =>
-        l.originalUrl.toLowerCase().includes(s) ||  
+        l.originalUrl.toLowerCase().includes(s) ||
         l.shortId.toLowerCase().includes(s)
     );
   }, [q, links]);
 
-
   return (
-    <div className="container text-primary-text mx-auto px-4 mt-40">
-      <div className="flex justify-between  md:flex-row w-full mb-10 gap-5">
-        <div className="flex flex-col">
-          <TextType
-            textColors={["text-primary-text"]}
-            text={["All your Links in one place"]}
-            typingSpeed={25}
-            pauseDuration={1500}
-            showCursor
-            cursorCharacter=""
-            className="text-4xl text-primary-text text-center md:text-left"
-          />
-          <TextType
-            textColors={["text-primary-text"]}
-            text={["Manage and track your shortened links"]}
-            typingSpeed={30}
-            pauseDuration={1500}
-            showCursor
-            cursorCharacter=""
-            className="text-start text-gray-500 mt-2"
+    <div className="container mx-auto px-4 pt-32 pb-20">
+      <div className="mx-auto max-w-4xl">
+        {/* Header */}
+        <div className="mb-8 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div>
+            <TextType
+              textColors={["text-foreground"]}
+              text={["All your Links"]}
+              typingSpeed={25}
+              pauseDuration={1500}
+              showCursor
+              cursorCharacter=""
+              className="text-3xl font-bold text-foreground sm:text-4xl"
+            />
+            <p className="mt-2 text-muted-foreground">
+              Manage and track your shortened links
+            </p>
+          </div>
+
+          <Link
+            href="/"
+            prefetch={false}
+            className="flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.98]"
+          >
+            <Plus className="h-4 w-4" />
+            Create Link
+          </Link>
+        </div>
+
+        {/* Search */}
+        <div className="relative mb-6">
+          <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2">
+            <Search className="h-5 w-5 text-muted-foreground" />
+          </div>
+          <input
+            name="search"
+            type="text"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search links..."
+            className="w-full rounded-xl border border-border bg-card py-3 pl-12 pr-4 text-card-foreground placeholder:text-muted-foreground outline-none transition-all focus:border-foreground/30 focus:ring-2 focus:ring-ring/20"
           />
         </div>
 
-        <div className="flex mt-5 justify-center justfiy-self-center w-full sm:w-1/3 lg:w-1/5 self-center rounded-2xl border p-2 font-semibold
-                            transition hover:bg-hover-button-bg hover:text-hover-button-text hover:shadow-lg hover:-translate-y-0.5
-                            active:translate-y-0 active:shadow-md
-                            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/60 focus-visible:ring-offset-2">
-              <Link href="/" prefetch={false} className="w-full h-full text-center">
-                Create more links
-              </Link>
-            </div>
-      </div>
+        {/* Links List */}
+        <div className="rounded-2xl border border-border bg-card p-6">
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-card-foreground">
+              All Links
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {filtered.length} {filtered.length === 1 ? "link" : "links"} found
+            </p>
+          </div>
 
-      <input
-        name="search"
-        type="text"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder="Search"
-        className="h-11 w-full rounded-2xl border px-4 mt-3 outline-none transition
-                   focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
-      />
-
-      <div className="flex flex-col border-2 rounded-2xl mt-3 p-5">
-        <h3 className="font-bold w-full">All Links</h3>
-        <p className="text-sm w-full text-gray-500 mt-2">Your most recently shortened links</p>
-
-        <div className="mt-5">
-          {filtered.length === 0 ? (
-            <p className="text-gray-500">No links found. Start by creating a new shortened link!</p>
-          ) : (
-            filtered.map((l) => (
-              <RecentLinks
-                key={l._id}
-                title={l.originalUrl}
-                url={l.shortId}
-                clicks={l.clicks}
-                date={l.createdAt}
-                id={l._id}
-                projectId={l.projectId}
-              />
-            ))
-          )}
+          <div className="space-y-3">
+            {filtered.length === 0 ? (
+              <div className="py-12 text-center">
+                <p className="text-muted-foreground">
+                  {q
+                    ? "No links match your search"
+                    : "No links found. Start by creating a new shortened link!"}
+                </p>
+              </div>
+            ) : (
+              filtered.map((l) => (
+                <RecentLinks
+                  key={l._id}
+                  title={l.originalUrl}
+                  url={l.shortId}
+                  clicks={l.clicks}
+                  date={l.createdAt}
+                  id={l._id}
+                  projectId={l.projectId}
+                />
+              ))
+            )}
+          </div>
         </div>
       </div>
     </div>
