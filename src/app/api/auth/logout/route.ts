@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
+import { destroySession } from "@/lib/auth/auth";
 
 export async function POST() {
-  const res = NextResponse.json({ ok: true, message: "Logged out" });
-  res.cookies.set("token", "", { httpOnly: true, path: "/", maxAge: 0 });
-  return res;
+  await destroySession();
+  return NextResponse.json({ ok: true });
 }

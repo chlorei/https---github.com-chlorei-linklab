@@ -1,16 +1,13 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/auth";
-import { getLinksByUserId } from "@/lib/queries/links";
+import { listLinksByUser } from "@/lib/services/link.service";
 import LinksClient from "./LinksClient";
 
-export const revalidate = 0;
 export const dynamic = "force-dynamic";
 
 export default async function LinksPage() {
   const s = await getSession();
-  if (!s) redirect("/signin");
+  if (!s) redirect("/signin?next=/links");
 
-  
-  const links = await getLinksByUserId(s.id);
-  return <LinksClient links={links} />;
+  return <LinksClient links={await listLinksByUser(s.id)} />;
 }

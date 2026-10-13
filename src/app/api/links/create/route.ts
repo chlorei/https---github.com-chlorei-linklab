@@ -1,38 +1,28 @@
 import { NextResponse } from "next/server";
-import { headers } from "next/headers";
-import * as LinkController from "@/lib/controllers/link.controller"
 import { requireSession } from "@/lib/auth/auth";
+import { getLinkOwner } from "@/lib/auth/anonymous";
+import { createLink, listLinksByUser } from "@/lib/services/link.service";
+import { handleRouteError, readJson } from "@/lib/http";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
-    const h = await headers();
-    const proto = h.get("x-forwarded-proto") ?? "http";
-    const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
-    const origin = `${proto}://${host}`;
-
-    const body = await req.json().catch(() => null);
-
-
-    const result = await LinkController.create(body, origin)
-
-    return NextResponse.json(result, { status: 201 });
+    // the owner comes from the session (or the anonymous browser cookie), never from the body
+    const owner = (await getLinkOwner({ create: true }))!;
+    const link = await createLink(owner, await readJson(req));
+    const shortUrl = new URL(`/${link.shortId}`, req.url).toString();
+    return NextResponse.json({ ok: true, link, shortUrl }, { status: 201 });
   } catch (err) {
-    const e = err as { message?: string; code?: number };
-    const status = e?.code === 11000 ? 409 : 500;
-    return NextResponse.json(
-      { ok: false, error: e?.message ?? "Internal error" },
-      { status }
-    );
+    return handleRouteError(err, "create link");
   }
 }
 
 export async function GET() {
-  
-  const session = await requireSession(); 
-  const links = await LinkController.listByUserId(session.id);
-  return NextResponse.json({ ok: true, links });
+  try {
+    const session = await requireSession();
+    return NextResponse.json({ ok: true, links: await listLinksByUser(session.id) });
+  } catch (err) {
+    return handleRouteError(err, "list links");
+  }
 }
-
-

@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 
 
-/* фон и цвет всегда с var() */
+/* background and text color always come from var() */
 html, body {
   min-height: 100vh;
   background: var(--background);
@@ -11,7 +11,7 @@ html, body {
   scrollbar-gutter: stable both-edges;
 }
 
-/* В момент переключения темы отключаем все transition'ы и фиксируем скролл */
+/* While the theme is switching, disable all transitions and lock scrolling */
 html.theming, html.theming * {
   transition: none !important;
 }
@@ -19,7 +19,7 @@ html.theming, html.theming body {
   overflow-y: scroll;
 }
 
-/* кольца фокуса не подсвечивают старый фон */
+/* focus rings must not flash the previous theme's background */
 :root, .dark {
   --tw-ring-offset-color: var(--background);
 }
@@ -176,12 +176,12 @@ html.theming, html.theming body {
 
 /* globals.css */
 img, picture, svg {
-  user-select: none;        /* нельзя выделить */
-  -webkit-user-drag: none;  /* нельзя перетаскивать */
+  user-select: none;        /* not selectable */
+  -webkit-user-drag: none;  /* not draggable */
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
-  pointer-events: auto;     /* чтобы клики оставались */
+  pointer-events: auto;     /* keep clicks working */
 }
 
 button, [role="button"], .btn {

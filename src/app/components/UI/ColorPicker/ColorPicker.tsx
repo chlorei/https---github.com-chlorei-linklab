@@ -11,17 +11,19 @@ const ColorSwitcher = ({
 }) => (
   <div className="grid grid-cols-5 gap-2">
     {colors.map((name) => {
-      const hex = colorMap[name]?.mainColor; // <-- берём hex из colorMap
+      const hex = colorMap[name]?.mainColor;
       return (
         <button
           key={name}
           type="button"
-          onClick={() => onChange(name)} // <-- передаём имя цвета
+          onClick={() => onChange(name)}
           title={name}
           className={`h-10 w-10 rounded-2xl border transition ring-offset-2 focus:outline-none focus:ring-2 focus:ring-black/60 ${
             value === name ? "ring-2 ring-black/60" : ""
           }`}
           style={{ backgroundColor: hex }}
+          aria-label={name}
+          aria-pressed={value === name}
         />
       );
     })}

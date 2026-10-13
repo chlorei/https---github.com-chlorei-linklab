@@ -1,21 +1,19 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import colorMap from "@/app/utils/colorMap";
+import { useRouter } from "next/navigation";
+import { useSessionLite } from "@/app/providers/SessionProvider";
 
-type Session = { id?: string };
 type ColorName = keyof typeof colorMap;
 type ProjectLite = { _id: string; title: string; color?: ColorName };
-type CreateLinkBody = {
-  originalUrl: string;
-  userId: string | null;
-  projectId?: string;
-};
 
 export default function InteractivePart() {
-  const [session, setSession] = useState<Session | null>(null);
+  const { session } = useSessionLite();
+  const router = useRouter();
 
   const [url, setUrl] = useState("");
   const [shortUrl, setShortUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -25,59 +23,28 @@ export default function InteractivePart() {
   const [projectId, setProjectId] = useState<string | null>(null);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("/api/auth/me", { cache: "no-store" });
-        const data = await res.json();
-        setSession(res.ok && data?.ok ? (data.user as Session) : null);
-      } catch {
-        setSession(null);
-      }
-    })();
-  }, []);
-
-  useEffect(() => {
     if (!withProject) return;
     const ac = new AbortController();
-    let alive = true;
 
     (async () => {
+      setProjectsLoading(true);
       try {
-        setProjectsLoading(true);
-        const res = await fetch("/api/projects", {
-          cache: "no-store",
-          signal: ac.signal,
-        });
-        if (!alive) return;
-
-        if (!res.ok) {
-          setProjects([]);
-          setProjectId(null);
-          return;
-        }
-
-        const data = await res.json().catch(() => ({}));
-        const list: ProjectLite[] = Array.isArray(data?.projects) ? data.projects : [];
+        const res = await fetch("/api/projects", { cache: "no-store", signal: ac.signal });
+        const data = await res.json().catch(() => null);
+        const list: ProjectLite[] = res.ok && Array.isArray(data?.projects) ? data.projects : [];
         setProjects(list);
-
-        if (!projectId && list.length > 0) {
-          setProjectId(list[0]._id);
-        }
+        setProjectId((current) => current ?? list[0]?._id ?? null);
       } catch {
-        if (!alive) return;
+        if (ac.signal.aborted) return;
         setProjects([]);
         setProjectId(null);
       } finally {
-        if (alive) setProjectsLoading(false);
+        if (!ac.signal.aborted) setProjectsLoading(false);
       }
     })();
 
-    return () => {
-      alive = false;
-      ac.abort();
-    };
-  }, [projectId, withProject]);
-  console.log(projects);
+    return () => ac.abort();
+  }, [withProject]);
 
   const currentColor = useMemo(() => {
     const p = projects.find((x) => x._id === projectId);
@@ -90,15 +57,15 @@ export default function InteractivePart() {
     e.preventDefault();
     setError(null);
     setShortUrl(null);
+    setCopied(false);
 
     const value = url.trim();
     if (!value) return setError("Please enter a valid URL.");
     if (withProject && !projectId) return setError("Please choose a project.");
 
     setLoading(true);
-      try {
-        const body: CreateLinkBody = { originalUrl: value ,  userId: session?.id || null, projectId: projectId || undefined };
-      if (withProject && projectId) body.projectId = projectId; // не отправляем пустые строки
+    try {
+      const body = { originalUrl: value, projectId: withProject ? projectId : null };
 
       const res = await fetch("/api/links/create", {
         method: "POST",
@@ -106,20 +73,18 @@ export default function InteractivePart() {
         body: JSON.stringify(body),
       });
 
-      const data = await res.json().catch(async () => {
-        const text = await res.text();
-        throw new Error(`Bad JSON (${res.status}): ${text}`);
-      });
+      const data = await res.json().catch(() => null);
 
       if (!res.ok || !data?.ok || !data?.shortUrl) {
         throw new Error(data?.error || `Request failed with status ${res.status}`);
       }
 
       setShortUrl(data.shortUrl);
+      // signed-out visitors see the new link in "Your links on this device"
+      if (!session) router.refresh();
       setUrl("");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
-      console.error("Create link error:", err);
     } finally {
       setLoading(false);
     }
@@ -128,7 +93,6 @@ export default function InteractivePart() {
   return (
     <div className="w-full max-w-2xl">
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
-        {/* Переключатель режима "с проектом / без проекта" */}
         {session?.id && (
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium text-gray-600">
@@ -136,11 +100,10 @@ export default function InteractivePart() {
             </label>
             <button
               type="button"
-              onClick={() => setWithProject((v) => {
-                // при выключении режима — очищаем выбор
-                if (v) setProjectId(null);
-                return !v;
-              })}
+              onClick={() => {
+                if (withProject) setProjectId(null);
+                setWithProject(!withProject);
+              }}
               className="rounded-xl border px-3 py-2 text-sm font-medium transition hover:bg-gray-100"
             >
               {withProject ? "Switch to No Project" : "Add to Project"}
@@ -154,7 +117,7 @@ export default function InteractivePart() {
             <div className="relative">
               <select
                 value={projectId ?? ""}
-                onChange={(e) => setProjectId(e.target.value || null)} // "" → null
+                onChange={(e) => setProjectId(e.target.value || null)}
                 disabled={projectsLoading}
                 className="w-full rounded-2xl border p-3 h-[48px] outline-none transition
                            appearance-none focus:ring-2 focus:ring-black/60 focus:ring-offset-2 disabled:opacity-60"
@@ -178,10 +141,13 @@ export default function InteractivePart() {
         )}
 
         <input
-          type="url"
+          type="text"
+          inputMode="url"
+          autoCapitalize="off"
+          spellCheck={false}
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://yourlonglink.com"
+          placeholder="example.com/your-long-link"
           className="w-full text-primary-text rounded-2xl border p-3 h-[48px] outline-none transition
                      focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
           required
@@ -212,11 +178,18 @@ export default function InteractivePart() {
           </a>
           <button
             type="button"
-            onClick={() => navigator.clipboard.writeText(shortUrl)}
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(shortUrl);
+                setCopied(true);
+              } catch {
+                setCopied(false);
+              }
+            }}
             className="rounded-xl border px-3 py-2 text-sm transition text-primary-text
                        hover:bg-hover-button-bg hover:text-hover-button-text"
           >
-            Copy
+            {copied ? "Copied!" : "Copy"}
           </button>
         </div>
       )}

@@ -1,8 +1,5 @@
 import mongoose from "mongoose";
 
-const MONGO_URI = process.env.MONGO_URI;
-if (!MONGO_URI) throw new Error("MONGO_URI is not defined in .env.local");
-
 declare global {
   var __mongoose:
     | { conn: typeof mongoose | null; promise: Promise<typeof mongoose> | null }
@@ -16,25 +13,23 @@ export default async function dbConnect() {
   if (cached.conn) return cached.conn;
 
   if (!cached.promise) {
-    if (process.env.NODE_ENV !== "production") mongoose.set("debug", true); // временно включим логи
-    cached.promise = mongoose.connect(MONGO_URI!, {
-      bufferCommands: false,
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 8000,
-      dbName: process.env.MONGODB_DB || undefined,
-    })
-    .then((m) => {
-      console.log("✅ Mongoose connected");
-      return m;
-    })
-    .catch((err) => {
-      console.error("❌ Mongoose connect error:", err?.message || err);
-      throw err;
-    });
+    const uri = process.env.MONGO_URI;
+    if (!uri) throw new Error("MONGO_URI is not defined");
 
-    mongoose.connection.on("error", (err) => {
-      console.error("❌ Mongoose runtime error:", err?.message || err);
-    });
+    if (process.env.MONGOOSE_DEBUG === "true") mongoose.set("debug", true);
+
+    cached.promise = mongoose
+      .connect(uri, {
+        bufferCommands: false,
+        maxPoolSize: 10,
+        serverSelectionTimeoutMS: 8000,
+        dbName: process.env.MONGODB_DB || undefined,
+      })
+      .catch((err) => {
+        // allow a retry on the next call instead of caching the failure
+        cached.promise = null;
+        throw err;
+      });
   }
 
   cached.conn = await cached.promise;

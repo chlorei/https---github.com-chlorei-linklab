@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./public/logo1.png" alt="Relinxr Logo" width="120"/>
+  <img src="./public/logo-black.png" alt="Relinxr Logo" width="120"/>
   <h1>Relinxr</h1>
   <p><strong>Modern open-source link shortener built with Next.js & MongoDB.</strong></p>
   <p>Custom domains, analytics, and blazing-fast redirects — all in one place.</p>
@@ -44,7 +44,16 @@ It’s built to deliver everything you expect from a modern link shortener like 
 
 ## ⚙️ Environment Variables
 
-Before running locally, create a `.env.local` file in the project root
+Before running locally, create `.env.local` from the template (`cp .env.example .env.local`) and fill it in:
+
+```bash
+MONGO_URI=mongodb+srv://...          # required
+JWT_SECRET=a-long-random-string      # required
+MONGODB_DB=relinxr                   # optional
+IPINFO_API_TOKEN=...                 # optional, enables country analytics
+NEXT_PUBLIC_SHORT_DOMAIN=rld.bio     # optional, host shown for short links
+NEXT_PUBLIC_SITE_URL=https://rld.bio # optional, used for OG metadata
+```
 
 ---
 
@@ -59,6 +68,9 @@ npm run dev
 # 3. Open your app
 http://localhost:3000
 
+# Run tests (downloads a MongoDB binary on first run)
+npm test
+
 ---
 
 ## ☁️ Deployment
@@ -69,7 +81,7 @@ Relinxr is fully optimized for **Vercel**.
 
 1. 🪣 Push your code to **GitHub**  
 2. 🔗 Connect the repository on [vercel.com](https://vercel.com)  
-3. ⚙️ Add the **MONGO_URI** variable in your Environment settings  
+3. ⚙️ Add **MONGO_URI** and **JWT_SECRET** (plus any optional variables) in your Environment settings  
 4. 🚀 Click **Deploy** — and you're live!
 
 ---

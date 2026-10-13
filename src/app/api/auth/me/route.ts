@@ -1,16 +1,10 @@
 import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import { getSession } from "@/lib/auth/auth";
 
-export async function GET(req: Request) {
-  const cookie = req.headers.get("cookie") || "";
-  const token = cookie.split("; ").find(c => c.startsWith("token="))?.split("=")[1];
-  if (!token) return NextResponse.json({ ok: false }, { status: 401 });
+export const dynamic = "force-dynamic";
 
-  try {
-    const secret = process.env.JWT_SECRET!;
-    const decoded = jwt.verify(token, secret) as { id: string; email: string; name?: string };
-    return NextResponse.json({ ok: true, user: decoded });
-  } catch {
-    return NextResponse.json({ ok: false }, { status: 401 });
-  }
+export async function GET() {
+  const user = await getSession();
+  if (!user) return NextResponse.json({ ok: false }, { status: 401 });
+  return NextResponse.json({ ok: true, user });
 }

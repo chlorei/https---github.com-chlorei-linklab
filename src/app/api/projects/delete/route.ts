@@ -1,18 +1,17 @@
-import Link from "@/lib/db/models/Link";
-import Project from "@/lib/db/models/Project";
-import { Types } from "mongoose";
 import { NextResponse } from "next/server";
+import { requireSession } from "@/lib/auth/auth";
+import { deleteProject } from "@/lib/services/project.service";
+import { handleRouteError, readJson, toObjectId } from "@/lib/http";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
-export async function POST (request: Request) {
-    const body = await request.json();
-    const { projectId } = body;
-    await Link.updateMany(
-            { projectId: new Types.ObjectId(projectId) },
-            { $set: { projectId: null } }
-        );
-    const projectRemove = await Project.deleteOne({ _id: new Types.ObjectId(projectId) });
-    return NextResponse.json({ ok: true, projectRemove: projectRemove  }, { status: 200 });
-    }
+export async function POST(req: Request) {
+  try {
+    const session = await requireSession();
+    const { projectId } = ((await readJson(req)) ?? {}) as { projectId?: unknown };
+    await deleteProject(session.id, toObjectId(projectId, "projectId"));
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    return handleRouteError(err, "delete project");
+  }
+}

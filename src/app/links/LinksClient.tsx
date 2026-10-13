@@ -4,21 +4,10 @@ import React, { useMemo, useState } from "react";
 import TextType from "@/app/components/UI/TextType/TextType";
 import RecentLinks from "@/app/components/UI/RecentLinks/RecentLinks";
 import Link from "next/link";
+import type { LinkItem } from "@/lib/services/link.service";
 
-
-type LinkItem = {
-  _id: string;
-  originalUrl: string;
-  shortId: string;
-  projectId?: string;
-  clicks: number;
-  createdAt: string;
-};
 
 export default function LinksClient({ links }: { links: LinkItem[] }) {
-
-
-
   const [q, setQ] = useState("");
 
   const filtered = useMemo(() => {
@@ -56,7 +45,7 @@ export default function LinksClient({ links }: { links: LinkItem[] }) {
           />
         </div>
 
-        <div className="flex mt-5 justify-center justfiy-self-center w-full sm:w-1/3 lg:w-1/5 self-center rounded-2xl border p-2 font-semibold
+        <div className="flex mt-5 justify-center w-full sm:w-1/3 lg:w-1/5 self-center rounded-2xl border p-2 font-semibold
                             transition hover:bg-hover-button-bg hover:text-hover-button-text hover:shadow-lg hover:-translate-y-0.5
                             active:translate-y-0 active:shadow-md
                             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/60 focus-visible:ring-offset-2">
@@ -92,7 +81,7 @@ export default function LinksClient({ links }: { links: LinkItem[] }) {
                 clicks={l.clicks}
                 date={l.createdAt}
                 id={l._id}
-                projectId={l.projectId}
+                projectId={l.projectId ?? undefined}
               />
             ))
           )}

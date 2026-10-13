@@ -7,7 +7,7 @@ export default function PrivacyPage() {
   return (
     <main className="min-h-dvh mt-30">
       <div className="mx-auto max-w-6xl px-4 mt-8 md:mt-12">
-        {/* Заголовок страницы */}
+        {/* Page header */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-primary-text">Privacy Policy</h1>
           <p className="mt-1 text-sm opacity-70">for Relinxr — URL shortening & analytics service</p>
@@ -17,7 +17,7 @@ export default function PrivacyPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-[260px_1fr]">
-          {/* TOC — мобилки (чипы) */}
+          {/* TOC — mobile (chips) */}
           <nav aria-label="Contents" className="md:hidden rounded-2xl border p-3">
             <div className="text-xs font-medium opacity-80">Contents</div>
             <div className="mt-2 flex flex-wrap gap-2">
@@ -33,7 +33,7 @@ export default function PrivacyPage() {
             </div>
           </nav>
 
-          {/* TOC — десктоп (липкий) */}
+          {/* TOC — desktop (sticky) */}
           <aside className="sticky top-6 hidden h-fit md:block">
             <nav aria-label="Contents" className="rounded-2xl border p-4">
               <div className="mb-2 text-sm font-semibold opacity-80">Contents</div>

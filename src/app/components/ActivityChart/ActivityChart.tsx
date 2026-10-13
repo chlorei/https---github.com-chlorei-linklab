@@ -15,7 +15,7 @@ type ActivityPoint = { day: string; clicks: number };
 
 export default function ActivityChart({ data }: { data: ActivityPoint[] }) {
   return (
-    <div className="rounded-2xl border border-gray-200 p-5 shadow-sm bg-white dark:bg-neutral-900 transition">
+    <div className="rounded-2xl border border-gray-200 dark:border-white/10 p-5 shadow-sm bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 transition">
       <h2 className="mb-3 text-sm font-medium text-gray-500 dark:text-gray-400">
         Activity (Last 7 Days)
       </h2>
@@ -26,10 +26,7 @@ export default function ActivityChart({ data }: { data: ActivityPoint[] }) {
             data={data}
             margin={{ top: 20, right: 25, bottom: 5, left: 0 }}
           >
-            {/* мягкая сетка */}
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-
-            {/* оси */}
+            <CartesianGrid strokeDasharray="3 3" stroke="#9ca3af" strokeOpacity={0.3} />
             <XAxis
               dataKey="day"
               tick={{ fill: "#6b7280", fontSize: 12 }}
@@ -42,8 +39,6 @@ export default function ActivityChart({ data }: { data: ActivityPoint[] }) {
               axisLine={false}
               tickLine={false}
             />
-
-            {/* тултип с кастомным стилем */}
             <Tooltip
               contentStyle={{
                 backgroundColor: "#ffffff",
@@ -53,17 +48,15 @@ export default function ActivityChart({ data }: { data: ActivityPoint[] }) {
                 fontSize: "12px",
                 padding: "8px 10px",
               }}
-              cursor={{ stroke: "#ffffff", strokeDasharray: "3 3" }}
+              cursor={{ stroke: "#9ca3af", strokeDasharray: "3 3" }}
             />
-
-            {/* сама линия */}
             <Line
               type="monotone"
               dataKey="clicks"
-              stroke="#000000" // <- ЧЁРНАЯ ЛИНИЯ
+              stroke="currentColor"
               strokeWidth={2.2}
-              dot={false} // точки не показываем
-              activeDot={{ r: 5, strokeWidth: 2, stroke: "#000000", fill: "#ffffff" }} // при ховере подсветка
+              dot={false}
+              activeDot={{ r: 5, strokeWidth: 2, stroke: "currentColor", fill: "#ffffff" }}
               animationDuration={600}
               animationEasing="ease-in-out"
             />

@@ -1,38 +1,33 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/auth";
-import { getLinksByUserId } from "@/lib/queries/links";
-import { countByUserId } from "@/lib/queries/visits";
-import { getLast7DaysVisitsByUser } from "@/lib/queries/activity";
-import { getAllLocationsByUserId } from "@/lib/queries/location";
+import { listLinksByUser } from "@/lib/services/link.service";
+import { listProjects } from "@/lib/services/project.service";
+import { countUserVisits, getUserActivity, getUserCountries, pickTopCountry } from "@/lib/services/analytics.service";
+import { getRequestTimeZone } from "@/lib/timezone";
 import DashboardClient from "./DashboardClient";
 
-export const revalidate = 0;
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const s = await getSession();
-  if (!s) redirect("/signin");
+  if (!s) redirect("/signin?next=/dashboard");
 
-  const [links, visitsCount, activity, locationsBundle] = await Promise.all([
-    getLinksByUserId(s.id),
-    countByUserId(s.id),
-    getLast7DaysVisitsByUser(s.id, "Europe/Berlin", 7),
-    getAllLocationsByUserId(s.id),
+  const [links, visitsCount, activity, countries, projects] = await Promise.all([
+    listLinksByUser(s.id),
+    countUserVisits(s.id),
+    getUserActivity(s.id, await getRequestTimeZone()),
+    getUserCountries(s.id),
+    listProjects(s.id),
   ]);
-  console.log("Locations bundle:", locationsBundle);
-  console.log("links", links);
-  console.log("visitsCount", visitsCount);
-  console.log("activity", activity);
-  const { all: locations, topCountry } = locationsBundle;
 
   return (
     <DashboardClient
-      greetingsText={`Welcome back, ${s.name}!`}
+      greetingsText={`Welcome back, ${s.name || "friend"}!`}
       links={links}
       amountVisits={visitsCount}
       activity={activity}
-      locations={locations}
-      topCountry={topCountry}
+      topCountry={pickTopCountry(countries)}
+      projectsCount={projects.length}
     />
   );
 }

@@ -1,24 +1,24 @@
-// src/app/[shortId]/route.ts
-import { NextRequest, NextResponse } from "next/server";
-import dbConnect from "@/lib/db/dbConnect";
-import Link from "@/lib/db/models/Link";
-import * as VisitController from "@/lib/controllers/visit.controller";
-import { IPinfoWrapper } from 'node-ipinfo';
-import dotenv from 'dotenv';
-import { countryCodeToNameMap } from "@/app/utils/countryMap";
-import Location from "@/lib/db/models/Location";
+import { after, NextRequest, NextResponse } from "next/server";
+import { findActiveLink } from "@/lib/services/link.service";
+import { recordVisit } from "@/lib/services/analytics.service";
+import { firstIp, lookupCountry } from "@/lib/geo";
 
-dotenv.config();
-
-const IPINFO_TOKEN = process.env.IPINFO_API_TOKEN ?? ""; 
-
-const ipinfoWrapper = new IPinfoWrapper(IPINFO_TOKEN);
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const SHORT_ID_RE = /^[a-z0-9]{4,32}$/i;
 
 function isServerSideRender(req: NextRequest) {
   const ua = req.headers.get("user-agent") || "";
   return /node\.js|vercel|next\.js|react-renderer/i.test(ua);
+}
+
+// Link-preview fetchers and crawlers: redirect them, but don't count them as clicks.
+const BOT_UA_RE =
+  /bot\b|crawler|spider|preview|facebookexternalhit|slack|telegram|whatsapp|discord|skypeuripreview|embedly|vkshare|headless|curl\/|wget\/|python-requests/i;
+
+function isBot(req: NextRequest) {
+  return BOT_UA_RE.test(req.headers.get("user-agent") || "");
 }
 
 function isPrefetch(req: NextRequest) {
@@ -30,58 +30,42 @@ function isPrefetch(req: NextRequest) {
   );
 }
 
-
+function clientIp(req: NextRequest) {
+  return firstIp(req.headers.get("x-forwarded-for")) || req.headers.get("x-real-ip") || undefined;
+}
 
 export async function GET(
   request: NextRequest,
-  context: { params: Promise<{ shortId: string }> } 
+  context: { params: Promise<{ shortId: string }> }
 ): Promise<Response> {
-
-  
-  
   if (isPrefetch(request) || isServerSideRender(request)) {
-    return new NextResponse(null, { status: 204 }); 
+    return new NextResponse(null, { status: 204 });
   }
 
   const { shortId } = await context.params;
-  await dbConnect();
-  const link = await Link.findOne({ shortId, isActive: true });
-  if (!link ) {
-  //   // return NextResponse.redirect(new URL('/404', request.url), { status: 302 });
-  // return NextResponse.redirect('https://rld.bio/dashboard', { status: 302 });
-  return new NextResponse("Not Found", { status: 404 });
+  if (!SHORT_ID_RE.test(shortId)) return new NextResponse("Not Found", { status: 404 });
+
+  const link = await findActiveLink(shortId);
+  if (!link) return new NextResponse("Not Found", { status: 404 });
+
+  if (!isBot(request)) {
+    // read request data now; it isn't available once the response has been sent
+    const ip = clientIp(request);
+    const userAgent = request.headers.get("user-agent") ?? undefined;
+
+    // Runs after the 302 is sent (waitUntil on Vercel), so the IPinfo lookup and
+    // DB writes never delay the redirect. Failures are logged, never surfaced.
+    after(async () => {
+      try {
+        await recordVisit(link, { ip, userAgent, countryName: await lookupCountry(ip) });
+      } catch (err) {
+        console.error("Failed to record visit:", err);
+      }
+    });
   }
 
-
-  const ip = request.headers.get("x-forwarded-for") ?? undefined;
-  const ua = request.headers.get("user-agent") ?? undefined;
-
-  let countryCode: string | null = 'XX'; 
-  let countryName = countryCodeToNameMap[countryCode as keyof typeof countryCodeToNameMap] ?? "Unknown";
-  console.log()
-  if (ip && IPINFO_TOKEN) {
-    try {
-      const geoResponse = await ipinfoWrapper.lookupIp(ip);
-      await (countryCode = geoResponse.countryCode || 'XX');  
-      countryName = countryCodeToNameMap[countryCode as keyof typeof countryCodeToNameMap] ?? "Unknown";
-    } catch (error) {
-      console.error('IPinfo lookup failed:', error);
-      countryCode = 'XX'; 
-      countryName = countryCodeToNameMap[countryCode as keyof typeof countryCodeToNameMap] ?? "Obama";
-    }
-  }
-
-  // await Visit.syncIndexes();
-  // await Location.syncIndexes();
-  await Promise.all([
-    VisitController.addOne({ linkId: link._id, ip, userAgent: ua, creatorUserId: link.userId, projectId: link.projectId}),
-    Location.updateOne({ countryName: countryName, userId: link.userId }, { $inc: { clicks: 1 } }, { upsert: true }),
-    Link.updateOne({ _id: link._id }, { isActive: true, $inc: { clicks: 1 } }),
-  ]);
-  return NextResponse.redirect(link.originalUrl, { status: 302 });
+  const res = NextResponse.redirect(link.originalUrl, { status: 302 });
+  // don't let browsers/CDNs cache the redirect, or repeat clicks wouldn't be counted
+  res.headers.set("Cache-Control", "private, no-store");
+  return res;
 }
-
-
-
-
-

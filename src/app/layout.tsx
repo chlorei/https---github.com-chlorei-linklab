@@ -4,18 +4,18 @@ import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
 import Header from "@/app/components/Header/Header";
-// import { ThemeToggle } from "./components/ThemeToggle/ThemeToggle";
 import AppProviders from "@/app/providers/AppProviders";
 import { getSession } from "@/lib/auth/auth";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
-  display: "swap",     // шрифт не вызывает CLS
-  variable: "--font-main", // добавит CSS-переменную
+  display: "swap",
+  variable: "--font-main",
   weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://rld.bio"),
   title: "Relinxr — Smarter Link Management",
   description:
     "Relinxr is a modern, open-source link shortener built with Next.js 15 + MongoDB. Shorten, track, and manage your links with analytics and custom domains — fast, simple, and privacy-friendly.",
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     title: "Relinxr — Smarter Link Shortener",
     description:
       "Open-source platform for creating, tracking, and managing short links.",
-    images: ["/logo.png"],
+    images: ["/fulllogo-black.png"],
     creator: "@sinaiida",
   },
   icons: {
@@ -60,8 +60,7 @@ export const metadata: Metadata = {
   },
 };
 
-
-
+const themeInitScript = `try{var t=localStorage.getItem("theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.classList.toggle("dark",t==="dark")}catch(e){}`;
 
 export default async function RootLayout({
   children,
@@ -69,38 +68,19 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
 
-  const s = await getSession();
-  const initialSession = s ? { id: s.id, email: s.email, name: s.name } : null;
+  const initialSession = await getSession();
 
   return (
-    <html lang="en" className={montserrat.variable}>
+    <html lang="en" className={montserrat.variable} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className="font-main leading-[1.75rem]">
         <Analytics />
         <SpeedInsights/>
         <AppProviders initialSession={initialSession}>
           <Header />
           {children}
-          <div
-          className="
-            absolute
-            left-1/2 -translate-x-1/2
-            top-[calc(env(safe-area-inset-top)+12px)]
-            mt-1
-            md:left-4 md:top-4 md:translate-x-0
-            w-auto h-auto z-[9999] 
-          "
-          >
-          {/* <ThemeToggle
-            className="
-              rounded-full border border-border bg-card text-foreground
-              px-4 py-2 text-sm shadow-md
-              transition hover:shadow-lg
-            "
-          /> */}
-          </div>
-            {/* <footer className="text-xs text-gray-500 text-center py-6">
-            © 2025 Relinxr — <Link href="/privacy" className="underline">Privacy Policy</Link>
-          </footer> */}
         </AppProviders>
       </body>
     </html>

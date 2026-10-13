@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 
-// рекурсивно превращает ObjectId и Date → string
+// Recursively converts ObjectId and Date values to strings
 export function serializeMongo<T>(obj: T): T {
   if (Array.isArray(obj)) {
     return obj.map(serializeMongo) as T;

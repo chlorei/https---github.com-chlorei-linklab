@@ -90,12 +90,12 @@ export function pickBestTitle(meta: PageMeta | null): string | null {
   ]
     .filter(Boolean)
     .map(s => s!.replace(/\s+/g, " ").trim())
-    .map(s => s!.slice(0, 140)); // не слишком длинно
+    .map(s => s!.slice(0, 140)); // keep titles reasonably short
 
   if (candidates.length) return candidates[0]!;
   try {
     const u = new URL(meta.finalUrl || meta.url);
-    // fallback: домен + последний сегмент
+    // fallback: hostname + last path segment
     const tail = u.pathname.split("/").filter(Boolean).pop();
     return tail ? `${u.hostname} — ${decodeURIComponent(tail)}` : u.hostname;
   } catch {

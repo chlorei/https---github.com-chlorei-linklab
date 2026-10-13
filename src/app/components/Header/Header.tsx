@@ -2,12 +2,13 @@
 import React, { useEffect, useState } from "react";
 import PillNav from "../UI/PillNav/PillNav";
 import { useThemeCtx } from "@/app/providers/ThemeProvider";
-import { useSessionLite } from "@/app/providers/SessionProvider"; // <-- важно
+import { useSessionLite } from "@/app/providers/SessionProvider";
+import { ThemeToggle } from "../ThemeToggle/ThemeToggle";
 import { usePathname } from "next/navigation";
 
 const Header = () => {
   const { theme } = useThemeCtx();
-  const { session } = useSessionLite();        // <-- вместо fetch("/api/auth/me")
+  const { session } = useSessionLite();
   const pathname = usePathname();
 
   const logoSrc = theme === "dark" ? "/logo-black.png" : "/logo-white.png";
@@ -30,14 +31,14 @@ const Header = () => {
       <PillNav
         logoAlt="Company Logo"
         items={[
-          { label: "Converse", href: "/" },
+          { label: "Home", href: "/" },
           session ? { label: "Dashboard", href: "/dashboard" } : null,
           session ? { label: "Links", href: "/links" } : null,
           session ? { label: "Projects", href: "/projects" } : null,
           { label: "About", href: "/about" },
           session ? { label: "Account", href: "/account" } : { label: "Sign Up", href: "/signup" },
         ].filter(Boolean) as { label: string; href: string }[]}
-        activeHref={pathname}                 
+        activeHref={pathname}
         className="custom-nav"
         ease="power2.easeOut"
         baseColor={colors.baseColor}
@@ -46,6 +47,7 @@ const Header = () => {
         pillTextColor={colors.pillTextColor}
         logo={logoSrc}
       />
+      <ThemeToggle className="fixed bottom-4 right-4 z-[1001]" />
     </div>
   );
 };

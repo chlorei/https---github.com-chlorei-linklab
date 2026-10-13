@@ -4,7 +4,7 @@ export interface ProjectDoc {
   userId: Types.ObjectId;
   title: string;
   description?: string;
-  color?: string; // hex
+  color?: string; // colorMap key
   isArchived: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -12,10 +12,10 @@ export interface ProjectDoc {
 
 const ProjectSchema = new Schema<ProjectDoc>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true, unique: false},
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     title: { type: String, required: true, trim: true },
     description: { type: String },
-    color: { type: String, default: "#4F7BFF" },
+    color: { type: String, default: "mint" },
     isArchived: { type: Boolean, default: false },
   },
   { timestamps: true }

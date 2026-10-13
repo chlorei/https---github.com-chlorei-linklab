@@ -1,57 +1,35 @@
-// components/FolderCard.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Modal from "../ProjectModal/ProjectModal";
-import colorMap from "@/app/utils/colorMap";
 import { useRouter } from "next/navigation";
+import Modal from "../ProjectModal/ProjectModal";
 import ActivityChart from "../ActivityChart/ActivityChart";
-
-// import { set } from "mongoose";
-
+import ColorPicker from "@/app/components/UI/ColorPicker/ColorPicker";
+import colorMap from "@/app/utils/colorMap";
+import { SHORT_DOMAIN } from "@/app/utils/shortDomain";
+import type { LinkItem } from "@/lib/services/link.service";
+import type { ProjectItem } from "@/lib/services/project.service";
+import type { ActivityPoint } from "@/lib/services/analytics.service";
 
 type ColorName = keyof typeof colorMap;
+const COLOR_NAMES = Object.keys(colorMap) as ColorName[];
 
-type FolderCardProps = {
-  sessionId: string;
-  projectId: string;
-  href?: string;
-  title: string;
-  description?: string;
-  linksCount?: number;
-  clicks?: number;
-  color: ColorName; // храним имя цвета
-  activity?: { day: string; clicks: number }[];
-  // emptyLinks: { _id: string; shortId: string; originalUrl: string; clicks: number }[];
+type ProjectCardProps = {
+  project: ProjectItem;
+  links: LinkItem[];
+  unassignedLinks: LinkItem[];
+  activity: ActivityPoint[];
 };
 
-// демо-список
-  // useEffect(() => {
-  //   const fetchLinks = async () => {
-  //     try {
-  //       const res = await fetch(`/api/links/find?projectid=null`, {
-  //         method: "GET",
-  //         cache: "no-store",
-  //       });
-  //       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  //       const data = await res.json();
-  //       setLinks(data);
-  //       console.log("Links for gayы project:", data);
-  //     } catch (error) {
-  //       console.error("Error fetching links for project:", error);
-  //     }
-  //   };
-  //   fetchLinks();
-  // }, []);
+function toColorName(value: string): ColorName {
+  return value in colorMap ? (value as ColorName) : "mint";
+}
 
-
-
-
-// утилита для затемнения/осветления hex
+// lighten (+) / darken (-) a hex color
 function shadeHex(hex: string, percent: number) {
   const m = hex.replace("#", "");
   if (![3, 6].includes(m.length)) return hex;
-  const full = m.length === 3 ? m.split("").map(ch => ch + ch).join("") : m;
+  const full = m.length === 3 ? m.split("").map((ch) => ch + ch).join("") : m;
   const comp = (i: number) => {
     const v = parseInt(full.slice(i, i + 2), 16);
     const nv = Math.min(255, Math.max(0, Math.round(v + (percent / 100) * 255)));
@@ -60,747 +38,368 @@ function shadeHex(hex: string, percent: number) {
   return `#${comp(0)}${comp(2)}${comp(4)}`;
 }
 
-// свотчи по имени
-function ColorSwatchesByName({
-  value,
-  onChange,
-  names,
-}: {
-  value: ColorName;
-  onChange: (c: ColorName) => void;
-  names: ColorName[];
-}) {
-
-
-
-
-
-  return (
-    <div className="grid grid-cols-5 gap-2">
-      {names.map((name) => {
-        const hex = colorMap[name].mainColor;
-        const active = value === name;
-        return (
-          <button
-            key={name}
-            type="button"
-            onClick={() => onChange(name)}
-            title={name}
-            className={`h-10 w-10 rounded-2xl border transition ring-offset-2 focus:outline-none focus:ring-2 focus:ring-black/60 ${
-              active ? "ring-2 ring-black/60" : ""
-            }`}
-            style={{ backgroundColor: hex }}
-            aria-pressed={active}
-            aria-label={name}
-          />
-        );
-      })}
-    </div>
-  );
-}
-
-export default function ProjectCard({
-  sessionId,
-  projectId,
-  title,
-  description,
-  color = "blue",
-  activity = []
-  // emptyLinks
-}: FolderCardProps) {
-
-
-  const [projectLinks, setProjectLinks] = useState<Array<{
-    rank: number;
-    index: number;
-    _id: string;
-    shortId: string;
-    originalUrl: string;
-    clicks: number;
-  }>>([]);
-
-  // const [loading, setLoading] = useState<boolean>(false);
-
-  // const [shortUrl, setShortUrl] = useState<string>("");
-  // const [slug, setSlug] = useState<string>("");
-  const [link, setLink] = useState<string>("");
-  const router = useRouter();
-  const [cardTitle, setCardTitle] = useState<string>(title);
-  const [cardDescription, setCardDescription] = useState<string>(description ?? "");
-  const [open, setOpen] = useState<boolean>(false);
-  const [tab] = useState<"links" | "analytics">("links");
-
-  const [sortedLinks] = useState<typeof projectLinks>([]);
-
-  // const [sortOption, setSortOption] = useState("most-clicks");
-  const [emptyLinks, setEmptyLinks] = useState<{ _id: string; shortId: string; originalUrl: string; clicks: number }[]>([]);
-  const [emptyLinksState] = useState(emptyLinks);
-
-  const [miniMenuOpen, setMiniMenuOpen] = useState(false);
-  const totalClicks = projectLinks
-  .map(l => l.clicks ?? 0)
-  .reduce((sum, n) => sum + n, 0);
-  console.log(emptyLinksState)
-
-  const [selectedIds, setSelectedIds] = useState<string[]>([])
-
-async function addToProject(params: { projectId: string; linkIds: string[] }) {
-  const { projectId, linkIds } = params;
-  try {
-    const response = await fetch(`/api/links/addToProject?projectid=${encodeURIComponent(projectId)}`, {
-      method: "POST",
-      cache: "no-store",
-      body: JSON.stringify({ linkIds }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const data = await response.json();
-    console.log("Request successful:", data); 
-    console.log("Links added to project:", data);
-    setSelectedIds([]);
-    router.refresh();    
-    // router.refresh
-  } catch (error) {
-    console.error("Error adding links to project:", error);
-  }
-}
-
-
- useEffect(() => {
-    const fetchLinks = async () => {
-      try {
-        const res = await fetch(`/api/links/find?projectid=null`, {
-          method: "GET",
-          cache: "no-store",
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        setEmptyLinks(data);
-        console.log("Links for gayы project:", data);
-      } catch (error) {
-        console.error("Error fetching links for project:", error);
-      }
-    };
-    fetchLinks();
-  }, []);
-
-  
-
-  
-function toggle(id: string) {
-  setSelectedIds(prev =>
-    prev.includes(id)
-      ? prev.filter(x => x !== id) // remove
-      : [...prev, id]              // add
-  )
-}
-
-
-
-// function handleSort(option: string) {
-//   // setSortOption(option);
-
-//   setEmptyLinksState(prev => {
-//     const arr = [...prev];
-
-//     switch (option) {
-//       case "most-clicks":
-//         return arr.sort((a,b)=> b.clicks - a.clicks);
-//       case "least-clicks":
-//         return arr.sort((a,b)=> a.clicks - b.clicks);
-//       case "az":
-//         return arr.sort((a,b)=> a.shortId.localeCompare(b.shortId));
-//       case "za":
-//         return arr.sort((a,b)=> b.shortId.localeCompare(a.shortId));
-//       default:
-//         return arr;
-//     }
-//   });
-// }
-
-const linkIds = projectLinks.map(l => l._id);
-const deleteProject = async (projectId: string, linkIds: string[]) => {
-    try {
-      const res = await fetch('/api/projects/delete', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ projectId: projectId, linkIds: linkIds }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      console.log("Deleted project response:", data);
-      router.refresh(); // обновляем список проектов
-    } catch (error) {
-      console.error("Error deleting project:", error);
-    }
-  }
-  type CreateLinkBody = {
-  originalUrl: string;
-  userId: string | null;
-  projectId?: string;
-};
-
-
-  const handleDeleteFromProject = async (linkId: string) => {
-  await fetch(
-    `/api/links/deleteFromProject?id=${linkId}&projectid=${projectId}`,
-    { method: "DELETE" }
-  );
-
-  setProjectLinks(prev => prev.filter(l => l._id !== linkId));
-};
-
-
-  async function handleClick() {
-  // setLoading(true);
-  try {
-    const body: CreateLinkBody = {
-      originalUrl: link,
-      userId: sessionId,
-      projectId: projectId || undefined,
-    };
-
-    const res = await fetch("/api/links/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-
-    const data = await res.json().catch(async () => {
-      const text = await res.text();
-      throw new Error(`Bad JSON (${res.status}): ${text}`);
-    });
-
-    if (!res.ok || !data?.ok || !data?.shortUrl) {
-      throw new Error(data?.error || `Request failed with status ${res.status}`);
-    }
-
-    // setShortUrl(data.shortUrl);
-    router.refresh(); // ← вот он
-  } catch (err) {
-    console.error("Create link error:", err);
-  } finally {
-    // setLoading(false);
-  }
-}
-
-
-const handleSave = async () => {
-  await fetch("/api/projects/update", {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      projectId,
-      title: cardTitle,
-      description: cardDescription,
-      color: colorName,                  
-    }),
+async function request(url: string, init: RequestInit) {
+  const res = await fetch(url, {
+    ...init,
+    headers: { "Content-Type": "application/json", ...init.headers },
+    cache: "no-store",
   });
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data?.ok) throw new Error(data?.error ?? `Request failed (${res.status})`);
+  return data;
+}
 
-  setOpen(false);
-};
-
-useEffect(() => {
-  const fetchLinks = async () => {
-    try {
-      const res = await fetch(
-        `/api/links/find?projectid=${encodeURIComponent(projectId)}`,
-        { method: "GET", cache: "no-store" }
-      );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-
-      setProjectLinks(data);
-
-      // interface RankedLink {
-      //   _id: string;
-      //   shortId: string;
-      //   originalUrl: string;
-      //   clicks: number;
-      //   rank: number;
-      // }
-
-      // setSortedLinks(
-      //   data
-      //     .slice()
-      //     .sort((a: { clicks: number }, b: { clicks: number }) => b.clicks - a.clicks)
-      //     .map(
-      //       (
-      //         link: { _id: string; shortId: string; originalUrl: string; clicks: number },
-      //         index: number
-      //       ): RankedLink => ({
-      //         ...link,
-      //         rank: index + 1,
-      //       })
-      //     )
-      // );
-
-    } catch (error) {
-      console.error("Error fetching links for3 project:", error);
-    }
-  };
-  fetchLinks();
-}, [projectId]);
-
-
-  const [colorName, setColorName] = useState<ColorName>(color);
-  useEffect(() => setColorName(color), [color]);
-
-  const palette = colorMap[colorName] ?? colorMap.blue;
-  const mainHex = palette.mainColor;
-
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
-
-  const colorNames = Object.keys(colorMap) as ColorName[];
-
-  // const SegTabs = ({
-  //   value,
-  //   onChange,
-  // }: { value: "links" | "analytics"; onChange: (v: "links" | "analytics") => void }) => (
-  //   <div className="inline-flex rounded-2xl bg-gray-100 p-1 text-sm font-medium">
-  //     {(["links", "analytics"] as const).map((k) => (
-  //       <button
-  //         key={k}
-  //         type="button"
-  //         onClick={() => onChange(k)}
-  //         className={`px-4 py-2 rounded-2xl transition flex items-center gap-2 ${
-  //           value === k ? "bg-white shadow-sm" : "text-gray-600 hover:text-gray-800"
-  //         }`}
-  //       >
-  //         {k === "links" ? (
-  //           <svg width="16" height="16" viewBox="0 0 24 24"><path d="M3.9 12a5 5 0 0 1 5-5h3v2h-3a3 3 0 0 0 0 6h3v2h-3a5 5 0 0 1-5-5Zm6-1h4v2h-4v-2Zm5.2-4h3a5 5 0 1 1 0 10h-3v-2h3a3 3 0 1 0 0-6h-3V7Z" fill="currentColor"/></svg>
-  //         ) : (
-  //           <svg width="16" height="16" viewBox="0 0 24 24"><path d="M4 13h3v7H4v-7Zm6-6h3v13h-3V7Zm6 3h3v10h-3V10Z" fill="currentColor"/></svg>
-  //         )}
-  //         {k === "links" ? "Links" : "Analytics"}
-  //       </button>
-  //     ))}
-  //   </div>
-  // );
-
-  const StatCard = ({ title, value, sub }: { title: string; value: string | number; sub?: string }) => (
-    <div className="flex-1 min-w-[210px] rounded-2xl border bg-white p-5">
+function StatCard({ title, value }: { title: string; value: string | number }) {
+  return (
+    <div className="flex-1 min-w-[180px] rounded-2xl border bg-white dark:bg-neutral-900 p-5">
       <div className="text-sm text-gray-500">{title}</div>
-      <div className="mt-1 text-4xl font-bold tracking-tight">{value}</div>
-      {sub && <div className="mt-1 text-xs text-emerald-600">{sub}</div>}
+      <div className="mt-1 text-4xl font-bold tracking-tight tabular-nums">{value}</div>
     </div>
   );
+}
 
-  console.log('type', typeof projectId);
+const inputClass =
+  "h-11 w-full rounded-2xl border px-4 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2";
+
+export default function ProjectCard({ project, links, unassignedLinks, activity }: ProjectCardProps) {
+  const router = useRouter();
+  const projectId = project._id;
+
+  const [open, setOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [title, setTitle] = useState(project.title);
+  const [description, setDescription] = useState(project.description);
+  const [colorName, setColorName] = useState<ColorName>(toColorName(project.color));
+  const [newUrl, setNewUrl] = useState("");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  // keep the edit form in sync after router.refresh()
+  useEffect(() => {
+    setTitle(project.title);
+    setDescription(project.description);
+    setColorName(toColorName(project.color));
+  }, [project.title, project.description, project.color]);
+
+  // closing discards unsaved edits
+  const closeModal = () => {
+    setOpen(false);
+    setTitle(project.title);
+    setDescription(project.description);
+    setColorName(toColorName(project.color));
+    setNewUrl("");
+    setSelectedIds([]);
+    setError(null);
+  };
+
+  const totalClicks = links.reduce((sum, l) => sum + l.clicks, 0);
+  const avgClicks = links.length ? (totalClicks / links.length).toFixed(2) : "0";
+  const mainHex = colorMap[toColorName(project.color)].mainColor;
+  const editHex = colorMap[colorName].mainColor;
+
+  async function run(action: () => Promise<unknown>) {
+    setBusy(true);
+    setError(null);
+    try {
+      await action();
+      router.refresh();
+      return true;
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong");
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const handleSave = async () => {
+    const ok = await run(() =>
+      request("/api/projects/update", {
+        method: "PATCH",
+        body: JSON.stringify({ projectId, title, description, color: colorName }),
+      })
+    );
+    if (ok) setOpen(false);
+  };
+
+  const handleDeleteProject = () => {
+    setMenuOpen(false);
+    if (!window.confirm(`Delete project "${project.title}"? Its links will be kept.`)) return;
+    run(() => request("/api/projects/delete", { method: "POST", body: JSON.stringify({ projectId }) }));
+  };
+
+  const handleCreateLink = async () => {
+    const ok = await run(() =>
+      request("/api/links/create", { method: "POST", body: JSON.stringify({ originalUrl: newUrl, projectId }) })
+    );
+    if (ok) setNewUrl("");
+  };
+
+  const handleAddSelected = async () => {
+    const ok = await run(() =>
+      request(`/api/links/addToProject?projectid=${encodeURIComponent(projectId)}`, {
+        method: "POST",
+        body: JSON.stringify({ linkIds: selectedIds }),
+      })
+    );
+    if (ok) setSelectedIds([]);
+  };
+
+  const handleDetach = (linkId: string) =>
+    run(() => request(`/api/links/deleteFromProject?id=${encodeURIComponent(linkId)}`, { method: "DELETE" }));
+
+  const toggle = (id: string) =>
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+
   return (
-    <div
-      onClick={() => setOpen(true)}
-      className="
-        rrelative flex flex-col w-full
-    rounded-2xl border border-gray-200/80 dark:border-white/10
-    bg-white dark:bg-neutral-900
-    shadow-sm hover:shadow-md transition-all duration-200 ease-out
-    hover:-translate-y-0.5 overflow-hidden 
-      "
-      role="article"
-      aria-label={title}
-    >
-      {/* верхняя цветная полоска */}
-      {/* <div
-        className="  pointer-events-none
-      absolute inset-x-0 top-0 h-1"
-        style={{
-          backgroundImage: `linear-gradient(to right, ${shadeHex(mainHex, 25)}, ${shadeHex(mainHex, -5)})`,
-        }}
-      /> */}
-
-      <div className="p-5 flex flex-col flex-1 justify-between">
-        <div className="flex items-start gap-3">
-          {/* иконка папки */}
-          <div
-            className="h-10 w-10 rounded-xl grid place-items-center shrink-0"
-            style={{ backgroundColor: mainHex }}
-          >
-            <svg
-              width="22" height="22" viewBox="0 0 24 24"
-              aria-hidden="true"
-              style={{ fill: shadeHex(mainHex, -35) }}
-            >
-              <path d="M3 6.75A1.75 1.75 0 0 1 4.75 5h4.086c.464 0 .908.184 1.236.512l1.172 1.176c.328.329.772.512 1.236.512H19.25A1.75 1.75 0 0 1 21 9v8.25A1.75 1.75 0 0 1 19.25 19H4.75A1.75 1.75 0 0 1 3 17.25V6.75Z" />
-            </svg>
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
-              {title}
-            </h3>
-            {description && (
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                {description}
-              </p>
-            )}
-          </div>
-
-          {/* меню */}
-          <div className="relative">
-  <button
-    onClick={(e) => {
-      e.stopPropagation()
-      setMiniMenuOpen((prev) => !prev) // ← toggle
-    }}
-    type="button"
-    className="p-2 -mr-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700
-               dark:hover:bg-white/5 dark:text-gray-400"
-    aria-label="Open folder menu"
-  >
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <circle cx="12" cy="5" r="2" />
-      <circle cx="12" cy="12" r="2" />
-      <circle cx="12" cy="19" r="2" />
-    </svg>
-  </button>
-
-  {miniMenuOpen && (
-    <div
-      onClick={(e) => e.stopPropagation()}
-      onMouseLeave={() => setMiniMenuOpen(false)}        // ← закрытие когда ушёл курсор
-      className="
-        absolute top-full right-0 mt-2
-        z-50
-        w-40
-        rounded-xl border border-border bg-background/90 backdrop-blur-md
-        shadow-lg p-2 text-sm
-      "
-    >
-      <button
-        onClick={() => deleteProject(projectId, linkIds)}
-        className=" px-3 py-2 text-left hover:bg-accent rounded-lg text-red-500 hover:text-red-600 hover:font-medium transition ease-in-out" 
+    <>
+      <div
+        onClick={() => setOpen(true)}
+        onKeyDown={(e) => e.key === "Enter" && setOpen(true)}
+        tabIndex={0}
+        role="button"
+        aria-label={`Open project ${project.title}`}
+        className="relative flex flex-col w-full cursor-pointer rounded-2xl border border-gray-200/80 dark:border-white/10
+                   bg-white dark:bg-neutral-900 shadow-sm hover:shadow-md transition-all duration-200 ease-out
+                   hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/60"
       >
-        Delete
-      </button>
-    </div>
-  )}
-</div>
-        </div>
+        <div className="p-5 flex flex-col flex-1 justify-between">
+          <div className="flex items-start gap-3">
+            <div className="h-10 w-10 rounded-xl grid place-items-center shrink-0" style={{ backgroundColor: mainHex }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" style={{ fill: shadeHex(mainHex, -35) }}>
+                <path d="M3 6.75A1.75 1.75 0 0 1 4.75 5h4.086c.464 0 .908.184 1.236.512l1.172 1.176c.328.329.772.512 1.236.512H19.25A1.75 1.75 0 0 1 21 9v8.25A1.75 1.75 0 0 1 19.25 19H4.75A1.75 1.75 0 0 1 3 17.25V6.75Z" />
+              </svg>
+            </div>
 
-        {/* метрики */}
-        <div className="mt-4 flex items-center gap-6 text-sm text-gray-600 dark:text-gray-400">
-          <div className="inline-flex items-center gap-1.5">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M4 12h4v8H4v-8Zm6-6h4v14h-4V6Zm6 9h4v5h-4v-5Z" />
-            </svg>
-            <span className="tabular-nums">{projectLinks.length}</span>
-            <span>links</span>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">{project.title}</h3>
+              {project.description && (
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{project.description}</p>
+              )}
+            </div>
+
+            <div className="relative" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+              <button
+                onClick={() => setMenuOpen((v) => !v)}
+                type="button"
+                className="p-2 -mr-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-white/5 dark:text-gray-400"
+                aria-label="Project menu"
+                aria-expanded={menuOpen}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <circle cx="12" cy="5" r="2" />
+                  <circle cx="12" cy="12" r="2" />
+                  <circle cx="12" cy="19" r="2" />
+                </svg>
+              </button>
+
+              {menuOpen && (
+                <div
+                  onMouseLeave={() => setMenuOpen(false)}
+                  className="absolute top-full right-0 mt-2 z-50 w-40 rounded-xl border border-border bg-background/90 backdrop-blur-md shadow-lg p-2 text-sm"
+                >
+                  <button
+                    type="button"
+                    onClick={handleDeleteProject}
+                    className="w-full px-3 py-2 text-left hover:bg-accent rounded-lg text-red-500 hover:text-red-600 transition"
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-          <div className="inline-flex items-center gap-1.5">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M3 12a9 9 0 0 1 16.32-4.9l1.86-1.86v7h-7l2.62-2.62A6 6 0 1 0 18 12h2a8 8 0 1 1-8-8v2A6 6 0 1 0 12 20a6 6 0 0 0 6-6h-2a4 4 0 1 1-4-4v2a2 2 0 1 0 2 2h2a4 4 0 1 1-4 4A8 8 0 0 1 3 12Z" />
-            </svg>
-            <span className="tabular-nums">{totalClicks.toLocaleString()}</span>
-            <span>clicks</span>
+
+          <div className="mt-4 flex items-center gap-6 text-sm text-gray-600 dark:text-gray-400">
+            <div className="inline-flex items-center gap-1.5">
+              <span className="tabular-nums font-medium">{links.length}</span>
+              <span>links</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5">
+              <span className="tabular-nums font-medium">{totalClicks.toLocaleString()}</span>
+              <span>clicks</span>
+            </div>
           </div>
         </div>
       </div>
-      {/* Модалка */}
-      <Modal open={open} onClose={() => setOpen(false)} title={title}>
-        <div className="max-h-[60vh] overflow-y-auto z-[999999]">
-          {/* header */}
-          <div className="flex flex-col sm:flex-row items-start justify-between gap-4 p-2">
-            <div className="flex items-center gap-3">
-              <div
-                className="h-12 w-12 rounded-2xl grid place-items-center text-white shadow-md"
-                style={{ background: mainHex }}
-              >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M10 4l2 2h8a2 2 0 0 1 2 2v9a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h5z"/>
-                </svg>
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold leading-tight">{title || "Project"}</h2>
-                <p className="text-gray-500 -mt-0.5">
-                  {description}
-                </p>
-              </div>
-            </div>
 
-            {/* <SegTabs value={tab} onChange={setTab} /> */}
+      <Modal open={open} onClose={closeModal} title={project.title}>
+        <div className="space-y-6">
+          {description && <p className="text-gray-500 -mt-2">{description}</p>}
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <StatCard title="Total Links" value={links.length} />
+            <StatCard title="Total Clicks" value={totalClicks} />
+            <StatCard title="Avg. Clicks/Link" value={avgClicks} />
           </div>
 
-          {/* summary stats */}
-          {tab === "links" ? (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-2">
-              <StatCard title="Total Links" value={projectLinks.length} />
-              <StatCard title="Total Clicks" value={totalClicks} />
-              <StatCard title="Avg. Clicks/Link" value={isNaN(totalClicks / projectLinks.length) ? "0" : (totalClicks / projectLinks.length).toFixed(2)} />
-            </div>          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-2">
-              <StatCard title="Top Country" value="Ukraine" />
-              <StatCard title="Avg. Daily" value={407} />
-              <StatCard title="Growth since last week" value={"+" + (Math.random() * 100).toFixed(2) + "%"} />
-            </div>
-          )}
+          {error && <p className="rounded-xl bg-red-50 px-4 py-2 text-sm text-red-600">{error}</p>}
 
-          {/* LINKS TAB */}
-          {tab === "links" && (
-            <div className="mt-6 space-y-6 px-2">
-              {/* Project Settings */}
-              <div className="rounded-2xl border p-4">
-                <h3 className="text-lg font-semibold mb-4">Project Settings</h3>
-
-                <div className="flex flex-col gap-4 md:flex-row">
-                  <input
-                    name="title"
-                    value={cardTitle}
-                    onChange={(e) => setCardTitle(e.target.value)}
-                    placeholder="Project Name"
-                    autoComplete="off"
-                    className="h-11 w-full rounded-2xl border px-4 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
-                  />
-                  <div className="min-w-[220px]">
-                    <div className="mb-2 text-sm text-gray-600">Project Color</div>
-
-                    <ColorSwatchesByName
-                      value={colorName}
-                      onChange={setColorName}
-                      names={colorNames}
-                    />
-
-                    {/* имя цвета для Server Action / формы */}
-                    <input type="hidden" name="color" value={colorName} />
-                  </div>
+          <section className="rounded-2xl border p-4">
+            <h3 className="text-lg font-semibold mb-4">Project Settings</h3>
+            <div className="flex flex-col gap-4 md:flex-row">
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Project Name"
+                autoComplete="off"
+                maxLength={100}
+                className={inputClass}
+              />
+              <div className="min-w-[220px]">
+                <div className="mb-2 text-sm text-gray-600 flex items-center gap-2">
+                  Project Color
+                  <span className="inline-block size-3 rounded-full border" style={{ backgroundColor: editHex }} />
                 </div>
-
-                <textarea
-                  name="description"
-                  value={cardDescription ?? ""}
-                  onChange={(e) => setCardDescription(e.target.value)}
-                  placeholder="Description"
-                  autoComplete="off"
-                  className="mt-4 min-h-[100px] max-h-[320px] w-full rounded-2xl border px-4 py-2 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2 resize-y"
-                />
+                <ColorPicker value={colorName} onChange={(c) => setColorName(c as ColorName)} colors={COLOR_NAMES} />
               </div>
-              <div className="rounded-2xl border p-4">
-                <ActivityChart data={activity}/>
-              </div>
-              
+            </div>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Description"
+              autoComplete="off"
+              maxLength={1000}
+              className="mt-4 min-h-[100px] max-h-[320px] w-full rounded-2xl border px-4 py-2 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2 resize-y"
+            />
+          </section>
 
-              {/* Add New Link */}
-              <div className="rounded-2xl border p-4">
-                <h3 className="text-lg font-semibold mb-3">Add New Link</h3>
-                <div className="flex flex-col gap-3 md:flex-row">
-                  <input
-                    value={link}
-                    type="url"
-                    onChange={(e) => setLink(e.target.value)}
-                    placeholder="https://your-long-url.com"
-                    className="h-11 w-full rounded-2xl border px-4 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
-                  />
-                  {/* <input
-                    value={slug}
-                    onChange={(e) => setSlug(e.target.value)}
-                    placeholder="custom-slug"
-                    className="h-11 w-full md:max-w-[260px] rounded-2xl border px-4 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
-                  /> */}
-                  <button
-                    onClick={() => handleClick()}
-                    type="button"
-                    className="h-11 px-5 rounded-2xl bg-black text-white hover:bg-black/90 transition"
+          <section className="rounded-2xl border p-4">
+            <h3 className="text-lg font-semibold mb-1">Clicks Over Time</h3>
+            <p className="text-sm text-gray-500 mb-4">Daily clicks for the last 7 days</p>
+            <ActivityChart data={activity} />
+          </section>
+
+          <section className="rounded-2xl border p-4">
+            <h3 className="text-lg font-semibold mb-3">Add New Link</h3>
+            <form
+              className="flex flex-col gap-3 md:flex-row"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleCreateLink();
+              }}
+            >
+              <input
+                value={newUrl}
+                type="text"
+          inputMode="url"
+          autoCapitalize="off"
+          spellCheck={false}
+                required
+                onChange={(e) => setNewUrl(e.target.value)}
+                placeholder="https://your-long-url.com"
+                className={inputClass}
+              />
+              <button
+                type="submit"
+                disabled={busy || !newUrl.trim()}
+                className="h-11 px-5 rounded-2xl bg-black text-white hover:bg-black/90 transition disabled:opacity-60"
+              >
+                Add
+              </button>
+            </form>
+          </section>
+
+          {unassignedLinks.length > 0 && (
+            <section className="rounded-2xl border p-4">
+              <h3 className="text-lg font-semibold">Add From Existing Links</h3>
+              <p className="text-sm text-gray-500">Pick links that aren&apos;t in any project yet.</p>
+
+              <div className="mt-4 rounded-xl border overflow-hidden">
+                {unassignedLinks.map((r) => (
+                  <label
+                    key={r._id}
+                    className="grid grid-cols-[32px_1.2fr_2fr_60px] gap-4 items-center px-4 py-3 text-sm border-b last:border-b-0 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer"
                   >
-                    Add
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(r._id)}
+                      onChange={() => toggle(r._id)}
+                      className="size-4"
+                    />
+                    <span className="font-medium truncate">{SHORT_DOMAIN}/{r.shortId}</span>
+                    <span className="truncate text-gray-600">{r.originalUrl}</span>
+                    <span className="text-right tabular-nums">{r.clicks}</span>
+                  </label>
+                ))}
+              </div>
+
+              <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <span className="rounded-lg border px-2 py-1 text-sm text-gray-500">{selectedIds.length} selected</span>
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedIds([])}
+                    className="px-4 py-2 rounded-2xl border hover:bg-gray-50 transition w-full sm:w-auto"
+                  >
+                    Clear
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy || selectedIds.length === 0}
+                    onClick={handleAddSelected}
+                    className="px-4 py-2 rounded-2xl bg-black text-white hover:bg-black/90 transition w-full sm:w-auto disabled:opacity-60"
+                  >
+                    Add Selected
                   </button>
                 </div>
               </div>
-
-              {/* Add From Existing Links */}
-              <div className="rounded-2xl border p-4">
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-                  <div>
-                    <h3 className="text-lg font-semibold">Add From Existing Links</h3>
-                    <p className="text-sm text-gray-500">Выберите уже созданные шорт-ссылки и добавьте их в проект.</p>
-                  </div>
-                  {/* <div className="flex items-center gap-2">
-                    <input
-                      placeholder="Search by slug or URL"
-                      className="h-10 w-[260px] rounded-2xl border px-4 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
-                    />
-                    {/* <select
-                      className="h-10 rounded-2xl border px-3 outline-none"
-                      value={sortOption}
-                      onChange={(e) => handleSort(e.target.value)}
-                    >
-                      <option value="most-clicks">Sort: Most clicks</option>
-                      <option value="least-clicks">Sort: Least clicks</option>
-                      <option value="az">Sort: A–Z</option>
-                      <option value="za">Sort: Z–A</option>
-                    </select> 
-                  </div> */}
-                </div>
-
-                <div className="mt-4 rounded-xl border bg-white">
-                  <div className="grid grid-cols-[40px_1.2fr_2fr_140px] gap-4 text-sm text-gray-500 px-4 py-3">
-                    <div />
-                    <div>Short Link</div>
-                    <div>Original URL</div>
-                    <div className="text-right">Clicks</div>
-                  </div>
-                  <div className="border-t">
-                    {emptyLinks.map((r) => (
-                      <div
-                        key={r._id}
-                        className="grid grid-cols-[40px_1.2fr_2fr_140px] gap-4 items-center px-4 py-3 hover:bg-gray-50"
-                      >
-                        <div>
-                          <input type="checkbox" onChange={() => toggle(r._id)} className="size-5 rounded-md border-gray-300" />
-                        </div>
-                        <div className="font-medium">rld.bio/{r.shortId}</div>
-                        <div className="truncate text-gray-600">{r.originalUrl}</div>
-                        <div className="text-right">
-                          <span className="rounded-xl bg-gray-100 px-2 py-1 text-sm font-medium">{r.clicks}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <span className="rounded-lg border px-2 py-1"> {selectedIds.length} selected</span>
-                  </div>
-                  <div className="flex gap-2 w-full sm:w-auto">
-                    <button className="px-4 py-2 rounded-2xl border hover:bg-gray-50 transition w-full sm:w-auto">Cancel</button>
-                    <button onClick={() => addToProject({ projectId, linkIds: selectedIds })} className="px-4 py-2 rounded-2xl bg-black text-white hover:bg-black/90 transition w-full sm:w-auto">Add Selected</button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Links Table */}
-              {/* <div className="rounded-2xl border">
-                <div className="p-4 text-lg font-semibold">Links in this Project ({projectLinks.length})</div>
-                <div className="border-t px-4 pb-4">
-                  <div className="grid grid-cols-[1.2fr_2fr_120px] gap-4 text-sm mt-2 text-g ray-500 px-2 pb-2">
-                    <div>Short Link</div>
-                    <div>Original URL</div>
-                    <div className="text-right">Clicks</div>
-                  </div>
-
-                  {projectLinks.map((r) => (
-                    <div
-                      key={r._id}
-                      className="grid grid-cols-[1.2fr_2fr_120px] gap-4 items-center rounded-xl px-2 py-3 hover:bg-gray-50"
-                    >
-                      <a href={`/${r.shortId}`} className="font-medium">rld.bio/{r.shortId}</a>
-                      <div className="truncate text-gray-600">{r.originalUrl}</div>
-                      <div className="text-right">
-                        <span className="rounded-xl bg-gray-100 px-2 py-1 text-sm font-medium">{r.clicks}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div> */}
-              <div className="mt-4 overflow-hidden rounded-xl border bg-white">
-  {/* Заголовок */}
-  <div className="grid grid-cols-[1.2fr_2fr_100px_30px] gap-4 px-4 py-3 text-sm text-gray-500">
-    <div>Short Link</div>
-    <div>Original URL</div>
-    <div className="text-right">Clicks</div>
-    <div></div>
-  </div>
-
-  {/* Строки */}
-  <div className="border-t">
-    {projectLinks.map((r) => (
-      <div
-        key={r._id}
-        className="grid grid-cols-[1.2fr_2fr_100px_30px] gap-4 items-center px-4 py-3 text-sm hover:bg-gray-50"
-      >
-        <a href={`/${r.shortId}`} className="font-medium text-gray-900">
-          rld.bio/{r.shortId}
-        </a>
-
-        <div className="truncate text-gray-600">{r.originalUrl}</div>
-
-        <div className="text-right">
-          <span className="inline-flex min-w-[3rem] justify-end rounded-xl bg-gray-100 px-2 py-1 text-xs font-medium">
-            {r.clicks}
-          </span>
-        </div>
-
-        {/* ❌ Крестик */}
-        <button
-          onClick={() => handleDeleteFromProject(r._id)}
-          className="flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition h-6 w-6"
-        >
-          ×
-        </button>
-      </div>
-    ))}
-  </div>
-</div>
-            </div>
+            </section>
           )}
 
-          {/* ANALYTICS TAB */}
-          {tab === "analytics" && (
-            <div className="mt-6 space-y-6 px-2">
-              <div className="rounded-2xl border p-4">
-                <h3 className="text-lg font-semibold mb-1">Clicks Over Time</h3>
-                <p className="text-sm text-gray-500 mb-4">Daily click performance for the last 7 days</p>
-                <div className="h-56 w-full rounded-xl bg-gradient-to-b from-white to-gray-50 border grid place-items-center">
-                  <div className="text-gray-400 text-sm">[chart placeholder]</div>
-                </div>
-              </div>
-
-              <div className="rounded-2xl border p-4">
-                <h3 className="text-lg font-semibold mb-3">Link Performance</h3>
-                <div className="h-56 w-full rounded-xl border bg-white grid grid-cols-3 gap-6 place-items-end p-6">
-                  <div className="w-full h-[220px] bg-black rounded-xl" />
-                  <div className="w-full h-[260px] bg-black rounded-xl" />
-                  <div className="w-full h-[200px] bg-black rounded-xl" />
-                </div>
-
-                <div className="mt-6">
-                  <h4 className="font-semibold mb-2">Top Performing Links</h4>
-                  <div className="grid grid-cols-[80px_1.3fr_120px] gap-3 text-sm text-gray-500 px-1 pb-2">
-                    <div>Rank</div>
-                    <div>Short Link</div>
-                    <div className="text-right">Clicks</div>
+          <section className="rounded-2xl border overflow-hidden">
+            <div className="p-4 text-lg font-semibold">Links in this Project ({links.length})</div>
+            {links.length === 0 ? (
+              <p className="border-t px-4 py-6 text-sm text-gray-500">No links yet.</p>
+            ) : (
+              <div className="border-t">
+                {links.map((r) => (
+                  <div
+                    key={r._id}
+                    className="grid grid-cols-[1.2fr_2fr_60px_30px] gap-4 items-center px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-white/5"
+                  >
+                    <a href={`/${r.shortId}`} target="_blank" rel="noopener noreferrer" className="font-medium truncate">
+                      {SHORT_DOMAIN}/{r.shortId}
+                    </a>
+                    <span className="truncate text-gray-600">{r.originalUrl}</span>
+                    <span className="text-right tabular-nums">{r.clicks}</span>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => handleDetach(r._id)}
+                      aria-label="Remove from project"
+                      title="Remove from project"
+                      className="flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition h-6 w-6"
+                    >
+                      ×
+                    </button>
                   </div>
-
-                  {sortedLinks.map((r) => (
-                    <div
-                      key={r._id}
-                      className="grid grid-cols-[80px_1.3fr_120px] gap-3 items-center rounded-xl px-2 py-3 hover:bg-gray-50"
-                    > 
-                      <div className="font-medium">{r.rank}</div>
-                      <div className="font-medium">rld.bio/{r.shortId}</div>
-                      <div className="text-right">
-                        <span className="rounded-xl bg-gray-100 px-2 py-1 text-sm font-medium">{r.clicks}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                ))}
               </div>
-            </div>
-          )}
+            )}
+          </section>
 
-          {/* Footer */}
-          <div className="flex justify-end gap-3 px-2 py-4">
+          <div className="flex justify-end gap-3 pb-1">
             <button
-              onClick={() => setOpen(false)}
-              className="px-4 py-2 rounded-2xl border hover:bg-gray-50 transition"
+              type="button"
+              onClick={closeModal}
+              className="px-4 py-2 rounded-2xl border hover:bg-gray-50 dark:hover:bg-white/5 transition"
             >
               Close
             </button>
-            <button onClick={handleSave} className="px-4 py-2 rounded-2xl bg-black text-white hover:bg-black/90 transition">
-              Save
+            <button
+              type="button"
+              disabled={busy || !title.trim()}
+              onClick={handleSave}
+              className="px-4 py-2 rounded-2xl bg-black text-white hover:bg-black/90 transition disabled:opacity-60"
+            >
+              {busy ? "Saving..." : "Save"}
             </button>
           </div>
         </div>
       </Modal>
-    </div>
+    </>
   );
 }

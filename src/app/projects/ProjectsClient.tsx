@@ -1,31 +1,24 @@
 "use client";
 
+import { useMemo, useState } from "react";
+import { useFormStatus } from "react-dom";
 import TextType from "@/app/components/UI/TextType/TextType";
 import ProjectCard from "../components/ProjectCard/ProjectCard";
 import Modal from "../components/ProjectModal/ProjectModal";
 import ColorPicker from "@/app/components/UI/ColorPicker/ColorPicker";
-import { useState } from "react";
 import { createProjectAction } from "@/app/actions/projects";
 import colorMap from "../utils/colorMap";
-import { useFormStatus } from "react-dom";
+import type { LinkItem } from "@/lib/services/link.service";
+import type { ProjectItem } from "@/lib/services/project.service";
+import type { ActivityPoint } from "@/lib/services/analytics.service";
 
 type ColorName = keyof typeof colorMap;
-
-type ProjectListItem = {
-  _id: string;               
-  title: string;
-  description?: string;
-  color: ColorName;          
-  createdAt?: string;       
-  updatedAt?: string;        
-};
+const COLOR_NAMES = Object.keys(colorMap) as ColorName[];
 
 type Props = {
-  // topCountry: { day: string; visits: number } | null;
-  sessionId: string | null;
-  colors: ColorName[];       
-  projects: ProjectListItem[];
-  activityAll: Record<string, { day: string; clicks: number }[]>;
+  projects: ProjectItem[];
+  links: LinkItem[];
+  activity: Record<string, ActivityPoint[]>;
 };
 
 function SubmitButton() {
@@ -42,37 +35,40 @@ function SubmitButton() {
   );
 }
 
-export default function ProjectsClient({ sessionId, colors, projects, activityAll}: Props) {
+const addButtonClass =
+  "inline-flex items-center justify-center rounded-2xl border px-4 py-2 font-semibold transition " +
+  "hover:bg-hover-button-bg hover:text-hover-button-text hover:shadow-lg hover:-translate-y-0.5 " +
+  "active:translate-y-0 active:shadow-md focus-visible:outline-none focus-visible:ring-2 " +
+  "focus-visible:ring-black/60 focus-visible:ring-offset-2 w-full sm:w-auto";
+
+export default function ProjectsClient({ projects, links, activity }: Props) {
   const [open, setOpen] = useState(false);
   const [color, setColor] = useState<ColorName>("mint");
-  const [links] = useState<{ _id: string; shortId: string; originalUrl: string; clicks: number }[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
+  const { byProject, unassigned } = useMemo(() => {
+    const byProject = new Map<string, LinkItem[]>();
+    const unassigned: LinkItem[] = [];
+    for (const link of links) {
+      if (!link.projectId) unassigned.push(link);
+      else byProject.set(link.projectId, [...(byProject.get(link.projectId) ?? []), link]);
+    }
+    return { byProject, unassigned };
+  }, [links]);
 
+  async function onCreate(fd: FormData) {
+    setError(null);
+    const res = await createProjectAction(fd);
+    if (res.ok) {
+      setOpen(false);
+      setColor("mint");
+    } else {
+      setError(res.error);
+    }
+  }
 
-  // useEffect(() => {
-  //   const fetchLinks = async () => {
-  //     try {
-  //       const res = await fetch(`/api/links/find?projectid=null`, {
-  //         method: "GET",
-  //         cache: "no-store",
-  //       });
-  //       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  //       const data = await res.json();
-  //       setLinks(data);
-  //       console.log("Links for gayы project:", data);
-  //     } catch (error) {
-  //       console.error("Error fetching links for project:", error);
-  //     }
-  //   };
-  //   fetchLinks();
-  // }, []);
-
-
-  console.log("bruvburv:", links);  
-  console.log("ProjectsClient rendered with projects:", projects);
   return (
     <>
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end md:justify-between w-full mb-10 gap-5">
         <div className="flex flex-col">
           <TextType
@@ -95,119 +91,84 @@ export default function ProjectsClient({ sessionId, colors, projects, activityAl
           />
         </div>
 
-        <button
-          onClick={() => setOpen(true)}
-          className="inline-flex items-center justify-center mt-2 md:mt-0 rounded-2xl border px-4 py-2 font-semibold
-                     transition hover:bg-hover-button-bg hover:text-hover-button-text hover:shadow-lg hover:-translate-y-0.5
-                     active:translate-y-0 active:shadow-md focus-visible:outline-none focus-visible:ring-2
-                     focus-visible:ring-black/60 focus-visible:ring-offset-2 w-full sm:w-auto"
-          disabled={!sessionId}
-          title={sessionId ? "" : "Log in to create a project"}
-        >
+        <button type="button" onClick={() => setOpen(true)} className={addButtonClass}>
           + Add project
         </button>
       </div>
 
-      {/* Grid */}
       {projects.length === 0 ? (
         <div className="w-full rounded-2xl border border-dashed p-8 text-center text-gray-500">
           <p className="text-lg">No projects yet</p>
           <p className="mt-1">Create your first project to start organizing links.</p>
-          <div className="mt-4">
-            <button
-              onClick={() => setOpen(true)}
-              className="rounded-2xl bg-black text-white px-4 py-2 hover:bg-black/90 transition"
-              disabled={!sessionId}
-            >
-              Create Project
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="mt-4 rounded-2xl bg-black text-white px-4 py-2 hover:bg-black/90 transition"
+          >
+            Create Project
+          </button>
         </div>
       ) : (
-        <div
-          className="
-          flex gap-3 flex-wrap align-center justify-between
-          "
-        >
-          {sessionId && projects.map((card) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {projects.map((project) => (
             <ProjectCard
-              sessionId={sessionId}
-              key={card._id}
-              projectId={card._id}                           
-              title={card.title}
-              description={card.description}
-              color={card.color as ColorName}                 
-              linksCount={0}
-              clicks={0}
-              activity={activityAll[card._id] || []}
-              // emptyLinks={links}
+              key={project._id}
+              project={project}
+              links={byProject.get(project._id) ?? []}
+              unassignedLinks={unassigned}
+              activity={activity[project._id] ?? []}
             />
           ))}
         </div>
       )}
 
-      {/* Create Modal */}
       <Modal open={open} onClose={() => setOpen(false)} title="Create New Project">
-        <form
-          action={async (fd) => {
-            const res = await createProjectAction(fd);
-            if (res.ok) setOpen(false);
-            else alert(res.error ?? "Failed");
-          }}
-          className="ma x-h-[80vh] overflow-y-auto p-2"
-        >
-          <div className="px-1">
-            <h2 className="text-2xl font-bold">Create New Project</h2>
-            <p className="text-gray-500 mt-1">Add a new project to organize your links</p>
-          </div>
+        <form action={onCreate} className="p-1">
+          <p className="text-gray-500">Add a new project to organize your links</p>
 
           <div className="mt-6 space-y-5">
-            {/* Title */}
             <div>
-              <label className="block text-sm font-semibold mb-2">Project Name</label>
+              <label htmlFor="project-title" className="block text-sm font-semibold mb-2">
+                Project Name
+              </label>
               <input
+                id="project-title"
                 name="title"
                 placeholder="My Awesome Project"
                 autoFocus
-                className="h-11 w-full rounded-2xl border px-4 outline-none transition
-                           focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
                 required
+                maxLength={100}
+                className="h-11 w-full rounded-2xl border px-4 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
               />
             </div>
 
-            {/* Description */}
             <div>
-              <label className="block text-sm font-semibold mb-2">Description</label>
+              <label htmlFor="project-description" className="block text-sm font-semibold mb-2">
+                Description
+              </label>
               <textarea
+                id="project-description"
                 name="description"
                 placeholder="Describe your project..."
-                className="min-h-[96px] max-h-[320px] w-full rounded-2xl border px-4 py-2 outline-none transition
-                           focus:ring-2 focus:ring-black/60 focus:ring-offset-2 resize-y"
+                maxLength={1000}
+                className="min-h-[96px] max-h-[320px] w-full rounded-2xl border px-4 py-2 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2 resize-y"
               />
             </div>
 
-            {/* Color (names) */}
             <div>
-              <label className="block text-sm font-semibold mb-2">Project Color</label>
-              {/* 
-                 Предполагаем, что твой ColorPicker умеет работать с ИМЕНАМИ цветов.
-              */}
-              <ColorPicker
-                value={color}
-                onChange={(c: string) => setColor(c as ColorName)}
-                colors={colors} // массив имён (["blue","mint",...])
-              />
-              {/* гарантируем попадание в FormData */}
+              <span className="block text-sm font-semibold mb-2">Project Color</span>
+              <ColorPicker value={color} onChange={(c) => setColor(c as ColorName)} colors={COLOR_NAMES} />
               <input type="hidden" name="color" value={color} />
             </div>
           </div>
 
-          {/* Footer */}
+          {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+
           <div className="flex flex-col sm:flex-row justify-end gap-3 mt-8">
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="px-4 py-2 rounded-2xl border hover:bg-gray-50 transition w-full sm:w-auto"
+              className="px-4 py-2 rounded-2xl border hover:bg-gray-50 dark:hover:bg-white/5 transition w-full sm:w-auto"
             >
               Cancel
             </button>

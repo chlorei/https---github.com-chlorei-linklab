@@ -2,177 +2,100 @@
 
 import Link from "next/link";
 import React, { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import PasswordInput from "@/app/components/PasswordInput/PasswordInput";
 
+const inputClass =
+  "h-11 w-full rounded-2xl border px-4 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2";
 
-const Main = () => {
+export default function SignUpPage() {
   const [msg, setMsg] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
 
-  const [show1, setShow1] = useState<boolean>(false);
-  const [show2, setShow2] = useState<boolean>(false);
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setMsg(null);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
-  e.preventDefault();
-  setMsg(null);
+    const fd = new FormData(e.currentTarget);
+    const get = (k: string) => String(fd.get(k) ?? "");
+    const email = get("email").trim().toLowerCase();
 
-  const form = e.currentTarget;
-  const firstName = (form.elements.namedItem("firstName") as HTMLInputElement)?.value.trim() || "";
-  const lastName  = (form.elements.namedItem("lastName")  as HTMLInputElement)?.value.trim() || "";
-  const email     = (form.elements.namedItem("email")     as HTMLInputElement)?.value.trim().toLowerCase() || "";
-  const email2    = (form.elements.namedItem("email2")    as HTMLInputElement)?.value.trim().toLowerCase() || "";
-  const pass      = (form.elements.namedItem("password")  as HTMLInputElement)?.value || "";
-  const pass2     = (form.elements.namedItem("password2") as HTMLInputElement)?.value || "";
+    if (email !== get("email2").trim().toLowerCase()) return setMsg("Emails do not match");
+    if (get("password") !== get("password2")) return setMsg("Passwords do not match");
 
-  if (email !== email2) { setMsg("Emails do not match"); return; }
-  if (pass  !== pass2)  { setMsg("Passwords do not match"); return; }
-  
-  try {
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        firstName,
-        lastName,
-        email,
-        password: pass, 
-      }),
-    });
-
-    type RegisterResponse = { message?: string };
-    const data: RegisterResponse = await res.json().catch(() => ({} as RegisterResponse));
-    if (!res.ok) {
-      setMsg(data?.message || `Error ${res.status}`);
-      return;
+    setPending(true);
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: get("firstName").trim(),
+          lastName: get("lastName").trim(),
+          email,
+          password: get("password"),
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setMsg(data?.error || `Error ${res.status}`);
+        return;
+      }
+      // the account is signed in right away; a full navigation refreshes the header session
+      window.location.assign("/dashboard");
+    } catch {
+      setMsg("Network error");
+    } finally {
+      setPending(false);
     }
-    setMsg(data?.message || "Registered");
-    window.location.href = "/signin";
-    form.reset();
-  } catch (err) {
-    console.error(err);
-    setMsg("Network error");
-  }
-};
-  
+  };
+
   return (
     <div className="container mx-auto px-4 text-primary-text">
       <div className="flex min-h-screen w-full flex-col items-center justify-center py-8 sm:py-12">
         <div className="w-full max-w-xl rounded-2xl border p-6 sm:p-8">
-          <h2 className="text-center font-bold text-2xl sm:text-3xl">Sign Up</h2>
+          <h1 className="text-center font-bold text-2xl sm:text-3xl">Sign Up</h1>
 
           <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-5">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <input
-                name="firstName"
-                type="text"
-                placeholder="First name"
-                autoComplete="given-name"
-                className="h-11 w-full rounded-2xl border px-4 outline-none transition
-                           focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
-              />
-
-              <input
-                name="lastName"
-                type="text"
-                placeholder="Last name"
-                autoComplete="family-name"
-                className="h-11 w-full rounded-2xl border px-4 outline-none transition
-                           focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
-              />
+              <input name="firstName" type="text" placeholder="First name" autoComplete="given-name" required maxLength={100} className={inputClass} />
+              <input name="lastName" type="text" placeholder="Last name" autoComplete="family-name" required maxLength={100} className={inputClass} />
             </div>
 
             <div className="flex flex-col gap-3">
-              <input
-                name="email"
-                type="email"
-                placeholder="Email"
-                autoComplete="email"
-                required
-                className="h-11 w-full rounded-2xl border px-4 outline-none transition
-                           focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
-              />
-
-              <input
-                name="email2"
-                type="email"
-                placeholder="Repeat Email"
-                autoComplete="email"
-                required
-                className="h-11 w-full rounded-2xl border px-4 outline-none transition
-                           focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
-              />
-
+              <input name="email" type="email" placeholder="Email" autoComplete="email" required className={inputClass} />
+              <input name="email2" type="email" placeholder="Repeat Email" autoComplete="email" required className={inputClass} />
             </div>
 
             <div className="flex flex-col gap-3">
-      <div className="relative">
-        <input
-          name="password"
-          type={show1 ? "text" : "password"}
-          placeholder="Password"
-          autoComplete="new-password"
-          required
-          minLength={8}
-          className="h-11 w-full rounded-2xl border px-4 pr-10 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
-        />
-        <button
-          type="button"
-          onClick={() => setShow1((p) => !p)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-black/60 hover:text-black"
-        >
-          {show1 ? <EyeOff size={18} /> : <Eye size={18} />}
-        </button>
-      </div>
+              <PasswordInput name="password" placeholder="Password" autoComplete="new-password" required minLength={8} maxLength={128} />
+              <PasswordInput name="password2" placeholder="Repeat Password" autoComplete="new-password" required minLength={8} maxLength={128} />
+            </div>
 
-      <div className="relative">
-        <input
-          name="password2"
-          type={show2 ? "text" : "password"}
-          placeholder="Repeat Password"
-          autoComplete="new-password"
-          required
-          minLength={8}
-          className="h-11 w-full rounded-2xl border px-4 pr-10 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
-        />
-        <button
-          type="button"
-          onClick={() => setShow2((p) => !p)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-black/60 hover:text-black"
-        >
-          {show2 ? <EyeOff size={18} /> : <Eye size={18} />}
-        </button>
-      </div>
-    </div>
+            {msg && (
+              <p role="alert" className="text-center text-sm text-red-500">
+                {msg}
+              </p>
+            )}
 
             <button
               type="submit"
+              disabled={pending}
               className="w-full sm:w-2/3 lg:w-1/2 self-center rounded-2xl border px-5 py-3 font-semibold
                          transition hover:bg-hover-button-bg hover:text-hover-button-text hover:shadow-lg hover:-translate-y-0.5
-                         active:translate-y-0 active:shadow-md
+                         active:translate-y-0 active:shadow-md disabled:opacity-60
                          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/60 focus-visible:ring-offset-2"
             >
-              
-              Sign up
+              {pending ? "Creating account..." : "Sign up"}
             </button>
-
-            {msg && (
-              <p className="text-center font-bold text-primary-text text-sm mt-2">{msg}</p>
-            )}
 
             <p className="text-center text-sm text-muted-foreground">
               Already have an account?{" "}
-              <Link
-                href="/signin"
-                className="underline underline-offset-4 hover:no-underline"
-              >
+              <Link href="/signin" className="underline underline-offset-4 hover:no-underline">
                 Sign in
               </Link>
             </p>
           </form>
-
         </div>
       </div>
     </div>
   );
-};
-
-export default Main;
+}

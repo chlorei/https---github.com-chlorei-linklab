@@ -451,7 +451,7 @@ const PillNav: React.FC<PillNavProps> = ({
                     style={defaultStyle}
                     onMouseEnter={hoverIn}
                     onMouseLeave={hoverOut}
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={() => isMobileMenuOpen && toggleMobileMenu()}
                   >
                     {item.label}
                   </Link>
@@ -462,7 +462,7 @@ const PillNav: React.FC<PillNavProps> = ({
                     style={defaultStyle}
                     onMouseEnter={hoverIn}
                     onMouseLeave={hoverOut}
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={() => isMobileMenuOpen && toggleMobileMenu()}
                   >
                     {item.label}
                   </Link>

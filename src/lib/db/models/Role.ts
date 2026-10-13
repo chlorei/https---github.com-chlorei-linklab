@@ -1,11 +1,10 @@
-import  { Schema, models, model } from "mongoose";
+import { Schema, models, model } from "mongoose";
 
-const UserSchema = new Schema(
+const RoleSchema = new Schema(
   {
-    value: {type: String, unique: true, default: "USER"}
+    value: { type: String, unique: true, default: "USER" },
   },
   { timestamps: true }
 );
 
-const User = models.User || model("User", UserSchema);
-export default User;
+export default models.Role || model("Role", RoleSchema);

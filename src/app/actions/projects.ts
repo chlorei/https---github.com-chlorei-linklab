@@ -1,47 +1,21 @@
 "use server";
 
-import dbConnect from "@/lib/db/dbConnect";
-import Project from "@/lib/db/models/Project";
 import { revalidatePath } from "next/cache";
-import { requireSession } from "@/lib/auth/auth"; // ⬅️ твой файл с getSession()
-                                                     // путь подстрой под проект
+import { requireSession } from "@/lib/auth/auth";
+import { createProject } from "@/lib/services/project.service";
+import { actionError, type ActionResult } from "./result";
 
-export async function createProjectAction(formData: FormData) {
-  const title = (formData.get("title") || "").toString().trim();
-  const description = (formData.get("description") || "").toString().trim();
-  const color = (formData.get("color") || "").toString();
-
-  // ✅ получаем юзера прямо из server-side сессии
-  const user = await requireSession();
-
-  if (!title) {
-    return { ok: false, error: "TITLE_REQUIRED" };
+export async function createProjectAction(formData: FormData): Promise<ActionResult<{ projectId: string }>> {
+  try {
+    const user = await requireSession();
+    const project = await createProject(user.id, {
+      title: formData.get("title") ?? "",
+      description: formData.get("description") ?? "",
+      color: formData.get("color") || undefined,
+    });
+    revalidatePath("/projects");
+    return { ok: true, data: { projectId: project._id } };
+  } catch (err) {
+    return actionError(err, "Failed to create project");
   }
-
-  await dbConnect();
-
-  const doc = await Project.create({
-    userId: user.id,
-    title,
-    description,
-    color,
-  });
-
-  revalidatePath("/projects");
-
-  return { ok: true, projectId: doc._id.toString() };
 }
-
-
-    
-export async function getProjectsByUserId(userId: string) {
-  await dbConnect();
-
-  const projects = await Project.find({ userId }).sort({ createdAt: -1 }).lean();
-  
-  return projects;
-}
-
-
-
-

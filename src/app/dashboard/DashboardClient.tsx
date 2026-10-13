@@ -1,4 +1,3 @@
-// app/dashboard/DashboardClient.tsx
 "use client";
 
 import React from "react";
@@ -6,31 +5,18 @@ import Link from "next/link";
 import TextType from "@/app/components/UI/TextType/TextType";
 import DashboardLinks from "@/app/components/UI/DashboardLinks/DashboardLinks";
 import ActivityChart from "@/app/components/ActivityChart/ActivityChart";
-import RecentLinks from "@/app/components/UI/RecentLinks/RecentLinks"; // проверь путь
+import RecentLinks from "@/app/components/UI/RecentLinks/RecentLinks";
+import type { LinkItem } from "@/lib/services/link.service";
+import type { ActivityPoint, CountryStat } from "@/lib/services/analytics.service";
 
-
-type BasicLink = {
-  _id: string;
-  originalUrl: string;
-  shortId: string;
-  clicks: number;
-  createdAt: string;
-//   projectId: string;
-};
-
-type ActivityPoint = { day: string; clicks: number };
-
-type CountryRow = { countryName: string; clicks: number; _id?: string };
 
 type Props = {
   greetingsText: string;
-  links: BasicLink[];
+  links: LinkItem[];
   amountVisits: number;
   activity: ActivityPoint[];
-  /** Опционально: отсортированный список стран по кликам */
-  locations?: CountryRow[];
-  /** Опционально: топ-страна (name/clicks) */
-  topCountry?: { name: string; clicks: number } | null;
+  topCountry: CountryStat | null;
+  projectsCount: number;
 };
 
 export default function DashboardClient({
@@ -38,12 +24,9 @@ export default function DashboardClient({
   links,
   amountVisits,
   activity,
-  locations,
   topCountry,
+  projectsCount,
 }: Props) {
-  // const countriesCount = locations?.length ?? 0;
-  console.log("Top country in DashboardClient:", topCountry);
-  console.log("Locations in DashboardClient:", locations);
   return (
     <div className="container mx-auto px-4 mt-40">
       <div className="flex w-full flex-col items-center">
@@ -63,8 +46,8 @@ export default function DashboardClient({
           <div className="flex flex-row flex-wrap w-full justify-center gap-5 md:gap-10 md:justify-between">
             <DashboardLinks image="/icons/link-2.svg" title="Total Links" count={links.length} />
             <DashboardLinks image="/icons/corner-down-right.svg" title="Total Clicks" count={amountVisits} />
-            <DashboardLinks image="/icons/globe.svg" title="Top countries" count={topCountry?.name ?? "Not available"} />
-            <DashboardLinks image="/icons/activity.svg" title="Active Projects" count={0} />
+            <DashboardLinks image="/icons/globe.svg" title="Top country" count={topCountry?.countryName ?? "Not available"} />
+            <DashboardLinks image="/icons/activity.svg" title="Active Projects" count={projectsCount} />
           </div>
 
           <div className="border-2 rounded-2xl mt-20 p-5">
@@ -90,12 +73,11 @@ export default function DashboardClient({
                   clicks={l.clicks}
                   date={l.createdAt}
                   id={l._id}
-                  // projectId={l.projectId}
                 />
               ))}
             </div>
 
-            <div className="flex mt-5 justify-center justfiy-self-center w-full sm:w-2/3 lg:w-1/2 self-center rounded-2xl border p-2 font-semibold
+            <div className="flex mt-5 justify-center w-full sm:w-2/3 lg:w-1/2 self-center rounded-2xl border p-2 font-semibold
                             transition hover:bg-hover-button-bg hover:text-hover-button-text hover:shadow-lg hover:-translate-y-0.5
                             active:translate-y-0 active:shadow-md
                             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/60 focus-visible:ring-offset-2">

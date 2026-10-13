@@ -2,29 +2,35 @@ import Main from "./components/Main/Main";
 import { getSession } from "@/lib/auth/auth";
 import Button from "@/app/components/UI/Button/Button";
 import BenefitCard from "@/app/components/BenefitCard/BenefitCard";
+import AnonymousLinks from "@/app/components/AnonymousLinks/AnonymousLinks";
+import { getAnonKey } from "@/lib/auth/anonymous";
+import { listLinks } from "@/lib/services/link.service";
+
+export const dynamic = "force-dynamic";
+
+const ANON_LINKS_SHOWN = 20;
 
 export default async function Home() {
   const session = await getSession();
-  
-  
-
 
   if (session) {
-      return (
-        <main className="min-h-screen flex justify-center mt-40">
-          <div className="container mx-auto  px-4 ">
-              <Main/>
-          </div>
-        </main>
-      );
-    }
+    return (
+      <main className="min-h-screen flex justify-center mt-40">
+        <div className="container mx-auto px-4">
+          <Main />
+        </div>
+      </main>
+    );
+  }
 
-
+  const anonKey = await getAnonKey();
+  const anonLinks = anonKey ? await listLinks({ anonKey }, ANON_LINKS_SHOWN) : [];
 
   return (
  <main className="min-h-screen flex justify-center mt-40">
-  <div className="container mx-auto  px-4 ">.
+  <div className="container mx-auto px-4">
       <Main/>
+      <AnonymousLinks links={anonLinks} />
       <div>
         <div className="mt-20 from-primary/5 to-primary/10 rounded-3xl p-8">
           <div className="text-center">
