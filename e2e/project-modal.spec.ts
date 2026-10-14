@@ -11,10 +11,10 @@ test("project modal closes via backdrop, Escape and the close button", async ({ 
   expect(res.status()).toBe(201);
 
   await page.goto("/projects");
-  await page.getByRole("button", { name: "+ Add project" }).click();
-  const createDialog = page.getByRole("dialog", { name: "Create New Project" });
-  await createDialog.getByLabel("Project Name").fill("Launch");
-  await createDialog.getByRole("button", { name: "Create Project" }).click();
+  await page.getByRole("button", { name: "New project" }).click();
+  const createDialog = page.getByRole("dialog", { name: "New project" });
+  await createDialog.getByLabel("Name").fill("Launch");
+  await createDialog.getByRole("button", { name: "Create project" }).click();
   await expect(createDialog).toBeHidden();
 
   const card = page.getByRole("button", { name: "Open project Launch" });

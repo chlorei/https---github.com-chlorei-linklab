@@ -1,22 +1,36 @@
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import type { Metadata } from "next";
-import { Montserrat } from "next/font/google";
+import { Bricolage_Grotesque, IBM_Plex_Mono, Instrument_Sans } from "next/font/google";
 import "./globals.css";
 import Header from "@/app/components/Header/Header";
+import Footer from "@/app/components/Footer/Footer";
 import AppProviders from "@/app/providers/AppProviders";
 import { getSession } from "@/lib/auth/auth";
 
-const montserrat = Montserrat({
+const display = Bricolage_Grotesque({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-main",
-  weight: ["400", "500", "600", "700"],
+  variable: "--font-bricolage",
+  weight: ["500", "600", "700"],
+});
+
+const sans = Instrument_Sans({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-instrument",
+});
+
+const mono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-plex-mono",
+  weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://rld.bio"),
-  title: "Relinxr — Smarter Link Management",
+  title: { default: "Relinxr — short links with click stats", template: "%s | Relinxr" },
   description:
     "Relinxr is a modern, open-source link shortener built with Next.js 15 + MongoDB. Shorten, track, and manage your links with analytics and custom domains — fast, simple, and privacy-friendly.",
   keywords: [
@@ -71,16 +85,25 @@ export default async function RootLayout({
   const initialSession = await getSession();
 
   return (
-    <html lang="en" className={montserrat.variable} suppressHydrationWarning>
+    <html lang="en" className={`${display.variable} ${sans.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className="font-main leading-[1.75rem]">
+      <body className="flex min-h-dvh flex-col">
         <Analytics />
         <SpeedInsights/>
         <AppProviders initialSession={initialSession}>
+          <a
+            href="#main"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-control focus:bg-surface focus:px-4 focus:py-2"
+          >
+            Skip to content
+          </a>
           <Header />
-          {children}
+          <div id="main" className="flex-1">
+            {children}
+          </div>
+          <Footer />
         </AppProviders>
       </body>
     </html>

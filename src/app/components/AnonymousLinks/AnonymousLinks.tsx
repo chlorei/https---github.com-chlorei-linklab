@@ -7,27 +7,23 @@ export default function AnonymousLinks({ links }: { links: LinkItem[] }) {
   if (links.length === 0) return null;
 
   return (
-    <section aria-labelledby="anon-links-heading" className="mx-auto mt-10 w-full max-w-2xl rounded-2xl border-2 p-6 text-primary-text">
-      <h2 id="anon-links-heading" className="font-bold">
-        Your links on this device
-      </h2>
-      <p className="mt-1 text-sm text-gray-500">
-        Only this browser can see and manage them.{" "}
-        <Link href="/signup" className="font-medium underline underline-offset-4">
-          Create a free account
-        </Link>{" "}
-        or{" "}
-        <Link href="/signin?next=/links" className="font-medium underline underline-offset-4">
-          sign in
-        </Link>{" "}
-        to keep them for good — they&apos;ll move to your account with their click stats.
-      </p>
-
-      <div className="mt-3">
+    <section aria-labelledby="anon-links-heading" className="mt-16">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+        <h2 id="anon-links-heading" className="text-xl font-semibold">
+          Your links on this device
+        </h2>
+        <p className="text-sm text-ink-soft">
+          <Link href="/signup" className="text-link underline underline-offset-4 hover:text-link-hover">
+            Create an account
+          </Link>{" "}
+          to keep them. They move over with their clicks.
+        </p>
+      </div>
+      <ul className="mt-3 divide-y divide-line border-y border-line">
         {links.map((l) => (
           <RecentLinks key={l._id} id={l._id} title={l.originalUrl} url={l.shortId} clicks={l.clicks} date={l.createdAt} />
         ))}
-      </div>
+      </ul>
     </section>
   );
 }

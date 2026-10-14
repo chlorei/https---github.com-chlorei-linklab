@@ -4,6 +4,7 @@ import { getProfile } from "@/lib/services/user.service";
 import AccountClient from "./AccountClient";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Account" };
 
 export default async function AccountPage() {
   const s = await getSession();

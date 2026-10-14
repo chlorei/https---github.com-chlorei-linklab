@@ -2,11 +2,16 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { X } from "lucide-react";
 import Modal from "../ProjectModal/ProjectModal";
 import ActivityChart from "../ActivityChart/ActivityChart";
+import Sparkline from "../Sparkline/Sparkline";
 import ColorPicker from "@/app/components/UI/ColorPicker/ColorPicker";
+import { Button } from "@/app/components/UI/Button/Button";
+import { Field, FormMessage, Input, Textarea } from "@/app/components/UI/Field/Field";
 import colorMap from "@/app/utils/colorMap";
 import { SHORT_DOMAIN } from "@/app/utils/shortDomain";
+import { displayUrl } from "@/app/utils/displayUrl";
 import type { LinkItem } from "@/lib/services/link.service";
 import type { ProjectItem } from "@/lib/services/project.service";
 import type { ActivityPoint } from "@/lib/services/analytics.service";
@@ -25,19 +30,6 @@ function toColorName(value: string): ColorName {
   return value in colorMap ? (value as ColorName) : "mint";
 }
 
-// lighten (+) / darken (-) a hex color
-function shadeHex(hex: string, percent: number) {
-  const m = hex.replace("#", "");
-  if (![3, 6].includes(m.length)) return hex;
-  const full = m.length === 3 ? m.split("").map((ch) => ch + ch).join("") : m;
-  const comp = (i: number) => {
-    const v = parseInt(full.slice(i, i + 2), 16);
-    const nv = Math.min(255, Math.max(0, Math.round(v + (percent / 100) * 255)));
-    return nv.toString(16).padStart(2, "0");
-  };
-  return `#${comp(0)}${comp(2)}${comp(4)}`;
-}
-
 async function request(url: string, init: RequestInit) {
   const res = await fetch(url, {
     ...init,
@@ -49,26 +41,34 @@ async function request(url: string, init: RequestInit) {
   return data;
 }
 
-function StatCard({ title, value }: { title: string; value: string | number }) {
+function ColorDot({ color, size = "size-3" }: { color: string; size?: string }) {
   return (
-    <div className="flex-1 min-w-[180px] rounded-2xl border bg-white dark:bg-neutral-900 p-5">
-      <div className="text-sm text-gray-500">{title}</div>
-      <div className="mt-1 text-4xl font-bold tracking-tight tabular-nums">{value}</div>
-    </div>
+    <span
+      aria-hidden="true"
+      className={`inline-block shrink-0 rounded-full border border-black/10 ${size}`}
+      style={{ backgroundColor: colorMap[toColorName(color)].mainColor }}
+    />
   );
 }
 
-const inputClass =
-  "h-11 w-full rounded-2xl border px-4 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2";
+function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
+  return (
+    <section className="border-t border-line pt-6 first:border-0 first:pt-0">
+      <h3 className="text-base font-semibold">{title}</h3>
+      {description && <p className="mt-1 text-sm text-ink-soft">{description}</p>}
+      <div className="mt-4">{children}</div>
+    </section>
+  );
+}
 
 export default function ProjectCard({ project, links, unassignedLinks, activity }: ProjectCardProps) {
   const router = useRouter();
   const projectId = project._id;
 
   const [open, setOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
 
   const [title, setTitle] = useState(project.title);
   const [description, setDescription] = useState(project.description);
@@ -92,16 +92,18 @@ export default function ProjectCard({ project, links, unassignedLinks, activity 
     setNewUrl("");
     setSelectedIds([]);
     setError(null);
+    setSaved(false);
   };
 
   const totalClicks = links.reduce((sum, l) => sum + l.clicks, 0);
-  const avgClicks = links.length ? (totalClicks / links.length).toFixed(2) : "0";
-  const mainHex = colorMap[toColorName(project.color)].mainColor;
-  const editHex = colorMap[colorName].mainColor;
+  const weekClicks = activity.reduce((sum, p) => sum + p.clicks, 0);
+  const dirty =
+    title !== project.title || description !== project.description || colorName !== toColorName(project.color);
 
   async function run(action: () => Promise<unknown>) {
     setBusy(true);
     setError(null);
+    setSaved(false);
     try {
       await action();
       router.refresh();
@@ -121,13 +123,14 @@ export default function ProjectCard({ project, links, unassignedLinks, activity 
         body: JSON.stringify({ projectId, title, description, color: colorName }),
       })
     );
-    if (ok) setOpen(false);
+    if (ok) setSaved(true);
   };
 
   const handleDeleteProject = () => {
-    setMenuOpen(false);
-    if (!window.confirm(`Delete project "${project.title}"? Its links will be kept.`)) return;
-    run(() => request("/api/projects/delete", { method: "POST", body: JSON.stringify({ projectId }) }));
+    if (!window.confirm(`Delete "${project.title}"? Its links are kept and become unfiled.`)) return;
+    run(() => request("/api/projects/delete", { method: "POST", body: JSON.stringify({ projectId }) })).then(
+      (ok) => ok && setOpen(false)
+    );
   };
 
   const handleCreateLink = async () => {
@@ -155,249 +158,197 @@ export default function ProjectCard({ project, links, unassignedLinks, activity 
 
   return (
     <>
-      <div
+      <button
+        type="button"
         onClick={() => setOpen(true)}
-        onKeyDown={(e) => e.key === "Enter" && setOpen(true)}
-        tabIndex={0}
-        role="button"
         aria-label={`Open project ${project.title}`}
-        className="relative flex flex-col w-full cursor-pointer rounded-2xl border border-gray-200/80 dark:border-white/10
-                   bg-white dark:bg-neutral-900 shadow-sm hover:shadow-md transition-all duration-200 ease-out
-                   hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/60"
+        className="group flex w-full flex-col rounded-panel border border-line bg-surface p-5 text-left transition-colors hover:border-line-strong focus-visible:outline-2 focus-visible:outline-link"
       >
-        <div className="p-5 flex flex-col flex-1 justify-between">
-          <div className="flex items-start gap-3">
-            <div className="h-10 w-10 rounded-xl grid place-items-center shrink-0" style={{ backgroundColor: mainHex }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" style={{ fill: shadeHex(mainHex, -35) }}>
-                <path d="M3 6.75A1.75 1.75 0 0 1 4.75 5h4.086c.464 0 .908.184 1.236.512l1.172 1.176c.328.329.772.512 1.236.512H19.25A1.75 1.75 0 0 1 21 9v8.25A1.75 1.75 0 0 1 19.25 19H4.75A1.75 1.75 0 0 1 3 17.25V6.75Z" />
-              </svg>
+        <div className="flex items-center gap-2.5">
+          <ColorDot color={project.color} />
+          <h3 className="min-w-0 truncate text-lg font-semibold group-hover:underline group-hover:decoration-line-strong group-hover:underline-offset-4">
+            {project.title}
+          </h3>
+        </div>
+        <p className="mt-1.5 line-clamp-2 min-h-[2.75em] text-sm text-ink-soft">
+          {project.description || "No description"}
+        </p>
+        <div className="mt-5 flex items-end justify-between gap-4">
+          <dl className="flex gap-5 text-sm">
+            <div>
+              <dt className="text-ink-faint">Links</dt>
+              <dd className="font-medium tabular-nums text-ink">{links.length}</dd>
             </div>
-
-            <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">{project.title}</h3>
-              {project.description && (
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{project.description}</p>
-              )}
+            <div>
+              <dt className="text-ink-faint">Clicks</dt>
+              <dd className="font-medium tabular-nums text-ink">{totalClicks.toLocaleString()}</dd>
             </div>
-
-            <div className="relative" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
-              <button
-                onClick={() => setMenuOpen((v) => !v)}
-                type="button"
-                className="p-2 -mr-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-white/5 dark:text-gray-400"
-                aria-label="Project menu"
-                aria-expanded={menuOpen}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <circle cx="12" cy="5" r="2" />
-                  <circle cx="12" cy="12" r="2" />
-                  <circle cx="12" cy="19" r="2" />
-                </svg>
-              </button>
-
-              {menuOpen && (
-                <div
-                  onMouseLeave={() => setMenuOpen(false)}
-                  className="absolute top-full right-0 mt-2 z-50 w-40 rounded-xl border border-border bg-background/90 backdrop-blur-md shadow-lg p-2 text-sm"
-                >
-                  <button
-                    type="button"
-                    onClick={handleDeleteProject}
-                    className="w-full px-3 py-2 text-left hover:bg-accent rounded-lg text-red-500 hover:text-red-600 transition"
-                  >
-                    Delete
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="mt-4 flex items-center gap-6 text-sm text-gray-600 dark:text-gray-400">
-            <div className="inline-flex items-center gap-1.5">
-              <span className="tabular-nums font-medium">{links.length}</span>
-              <span>links</span>
-            </div>
-            <div className="inline-flex items-center gap-1.5">
-              <span className="tabular-nums font-medium">{totalClicks.toLocaleString()}</span>
-              <span>clicks</span>
-            </div>
+          </dl>
+          <div className="text-link" title={`${weekClicks} clicks in the last 7 days`}>
+            <Sparkline values={activity.map((p) => p.clicks)} />
           </div>
         </div>
-      </div>
+      </button>
 
-      <Modal open={open} onClose={closeModal} title={project.title}>
-        <div className="space-y-6">
-          {description && <p className="text-gray-500 -mt-2">{description}</p>}
+      <Modal open={open} onClose={closeModal} title={project.title} leading={<ColorDot color={project.color} size="size-3.5" />}>
+        <div className="flex flex-col gap-8">
+          {error && <FormMessage tone="error">{error}</FormMessage>}
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <StatCard title="Total Links" value={links.length} />
-            <StatCard title="Total Clicks" value={totalClicks} />
-            <StatCard title="Avg. Clicks/Link" value={avgClicks} />
-          </div>
+          <Section
+            title="Clicks, last 7 days"
+            description={`${weekClicks.toLocaleString()} this week, ${totalClicks.toLocaleString()} all time across ${links.length} ${
+              links.length === 1 ? "link" : "links"
+            }.`}
+          >
+            <ActivityChart data={activity} height={180} />
+          </Section>
 
-          {error && <p className="rounded-xl bg-red-50 px-4 py-2 text-sm text-red-600">{error}</p>}
+          <Section title={`Links in this project (${links.length})`}>
+            {links.length === 0 ? (
+              <p className="text-sm text-ink-soft">No links yet. Add a new one or file existing links below.</p>
+            ) : (
+              <ul className="-my-3 divide-y divide-line">
+                {links.map((r) => (
+                  <li key={r._id} className="flex items-center gap-3 py-3">
+                    <div className="min-w-0 flex-1">
+                      <a href={`/${r.shortId}`} target="_blank" rel="noopener noreferrer" className="short-link text-sm">
+                        {SHORT_DOMAIN}/{r.shortId}
+                      </a>
+                      <p className="truncate text-sm text-ink-soft">{displayUrl(r.originalUrl)}</p>
+                    </div>
+                    <span className="text-sm tabular-nums text-ink-soft">
+                      {r.clicks} {r.clicks === 1 ? "click" : "clicks"}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => handleDetach(r._id)}
+                      aria-label={`Remove ${SHORT_DOMAIN}/${r.shortId} from project`}
+                      title="Remove from project"
+                      className="grid size-8 place-items-center rounded-control text-ink-faint hover:bg-sunken hover:text-danger"
+                    >
+                      <X size={16} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Section>
 
-          <section className="rounded-2xl border p-4">
-            <h3 className="text-lg font-semibold mb-4">Project Settings</h3>
-            <div className="flex flex-col gap-4 md:flex-row">
-              <input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Project Name"
-                autoComplete="off"
-                maxLength={100}
-                className={inputClass}
-              />
-              <div className="min-w-[220px]">
-                <div className="mb-2 text-sm text-gray-600 flex items-center gap-2">
-                  Project Color
-                  <span className="inline-block size-3 rounded-full border" style={{ backgroundColor: editHex }} />
-                </div>
-                <ColorPicker value={colorName} onChange={(c) => setColorName(c as ColorName)} colors={COLOR_NAMES} />
-              </div>
-            </div>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Description"
-              autoComplete="off"
-              maxLength={1000}
-              className="mt-4 min-h-[100px] max-h-[320px] w-full rounded-2xl border px-4 py-2 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2 resize-y"
-            />
-          </section>
-
-          <section className="rounded-2xl border p-4">
-            <h3 className="text-lg font-semibold mb-1">Clicks Over Time</h3>
-            <p className="text-sm text-gray-500 mb-4">Daily clicks for the last 7 days</p>
-            <ActivityChart data={activity} />
-          </section>
-
-          <section className="rounded-2xl border p-4">
-            <h3 className="text-lg font-semibold mb-3">Add New Link</h3>
+          <Section title="Add a link">
             <form
-              className="flex flex-col gap-3 md:flex-row"
+              className="flex flex-col gap-2 sm:flex-row"
               onSubmit={(e) => {
                 e.preventDefault();
                 handleCreateLink();
               }}
             >
-              <input
+              <label htmlFor={`new-link-${projectId}`} className="sr-only">
+                Long URL
+              </label>
+              <Input
+                id={`new-link-${projectId}`}
                 value={newUrl}
                 type="text"
-          inputMode="url"
-          autoCapitalize="off"
-          spellCheck={false}
-                required
+                inputMode="url"
+                autoCapitalize="off"
+                spellCheck={false}
                 onChange={(e) => setNewUrl(e.target.value)}
-                placeholder="https://your-long-url.com"
-                className={inputClass}
+                placeholder="example.com/your-long-link"
               />
-              <button
-                type="submit"
-                disabled={busy || !newUrl.trim()}
-                className="h-11 px-5 rounded-2xl bg-black text-white hover:bg-black/90 transition disabled:opacity-60"
-              >
-                Add
-              </button>
+              <Button type="submit" variant="accent" disabled={busy || !newUrl.trim()} className="h-11">
+                Shorten and add
+              </Button>
             </form>
-          </section>
 
-          {unassignedLinks.length > 0 && (
-            <section className="rounded-2xl border p-4">
-              <h3 className="text-lg font-semibold">Add From Existing Links</h3>
-              <p className="text-sm text-gray-500">Pick links that aren&apos;t in any project yet.</p>
-
-              <div className="mt-4 rounded-xl border overflow-hidden">
-                {unassignedLinks.map((r) => (
-                  <label
-                    key={r._id}
-                    className="grid grid-cols-[32px_1.2fr_2fr_60px] gap-4 items-center px-4 py-3 text-sm border-b last:border-b-0 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.includes(r._id)}
-                      onChange={() => toggle(r._id)}
-                      className="size-4"
-                    />
-                    <span className="font-medium truncate">{SHORT_DOMAIN}/{r.shortId}</span>
-                    <span className="truncate text-gray-600">{r.originalUrl}</span>
-                    <span className="text-right tabular-nums">{r.clicks}</span>
-                  </label>
-                ))}
-              </div>
-
-              <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <span className="rounded-lg border px-2 py-1 text-sm text-gray-500">{selectedIds.length} selected</span>
-                <div className="flex gap-2 w-full sm:w-auto">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedIds([])}
-                    className="px-4 py-2 rounded-2xl border hover:bg-gray-50 transition w-full sm:w-auto"
-                  >
-                    Clear
-                  </button>
-                  <button
-                    type="button"
-                    disabled={busy || selectedIds.length === 0}
-                    onClick={handleAddSelected}
-                    className="px-4 py-2 rounded-2xl bg-black text-white hover:bg-black/90 transition w-full sm:w-auto disabled:opacity-60"
-                  >
-                    Add Selected
-                  </button>
+            {unassignedLinks.length > 0 && (
+              <div className="mt-6">
+                <p className="text-sm font-medium">Or file existing links</p>
+                <ul className="mt-2 max-h-56 divide-y divide-line overflow-y-auto rounded-control border border-line">
+                  {unassignedLinks.map((r) => (
+                    <li key={r._id}>
+                      <label className="flex cursor-pointer items-center gap-3 px-3 py-2.5 hover:bg-sunken">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(r._id)}
+                          onChange={() => toggle(r._id)}
+                          className="size-4 accent-[var(--link)]"
+                        />
+                        <span className="min-w-0 flex-1">
+                          <span className="block font-mono text-sm text-ink">
+                            {SHORT_DOMAIN}/{r.shortId}
+                          </span>
+                          <span className="block truncate text-sm text-ink-soft">{displayUrl(r.originalUrl)}</span>
+                        </span>
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-3 flex items-center gap-3">
+                  <Button variant="primary" size="sm" disabled={busy || selectedIds.length === 0} onClick={handleAddSelected}>
+                    {selectedIds.length > 0 ? `Add ${selectedIds.length} to project` : "Add to project"}
+                  </Button>
+                  {selectedIds.length > 0 && (
+                    <Button variant="ghost" size="sm" onClick={() => setSelectedIds([])}>
+                      Clear selection
+                    </Button>
+                  )}
                 </div>
               </div>
-            </section>
-          )}
-
-          <section className="rounded-2xl border overflow-hidden">
-            <div className="p-4 text-lg font-semibold">Links in this Project ({links.length})</div>
-            {links.length === 0 ? (
-              <p className="border-t px-4 py-6 text-sm text-gray-500">No links yet.</p>
-            ) : (
-              <div className="border-t">
-                {links.map((r) => (
-                  <div
-                    key={r._id}
-                    className="grid grid-cols-[1.2fr_2fr_60px_30px] gap-4 items-center px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-white/5"
-                  >
-                    <a href={`/${r.shortId}`} target="_blank" rel="noopener noreferrer" className="font-medium truncate">
-                      {SHORT_DOMAIN}/{r.shortId}
-                    </a>
-                    <span className="truncate text-gray-600">{r.originalUrl}</span>
-                    <span className="text-right tabular-nums">{r.clicks}</span>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => handleDetach(r._id)}
-                      aria-label="Remove from project"
-                      title="Remove from project"
-                      className="flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition h-6 w-6"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
             )}
-          </section>
+          </Section>
 
-          <div className="flex justify-end gap-3 pb-1">
-            <button
-              type="button"
-              onClick={closeModal}
-              className="px-4 py-2 rounded-2xl border hover:bg-gray-50 dark:hover:bg-white/5 transition"
+          <Section title="Settings">
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSave();
+              }}
             >
-              Close
-            </button>
-            <button
-              type="button"
-              disabled={busy || !title.trim()}
-              onClick={handleSave}
-              className="px-4 py-2 rounded-2xl bg-black text-white hover:bg-black/90 transition disabled:opacity-60"
-            >
-              {busy ? "Saving..." : "Save"}
-            </button>
-          </div>
+              <Field label="Name" htmlFor={`title-${projectId}`}>
+                <Input
+                  id={`title-${projectId}`}
+                  value={title}
+                  onChange={(e) => {
+                    setTitle(e.target.value);
+                    setSaved(false);
+                  }}
+                  placeholder="Project Name"
+                  autoComplete="off"
+                  maxLength={100}
+                  required
+                />
+              </Field>
+              <Field label="Description" htmlFor={`desc-${projectId}`}>
+                <Textarea
+                  id={`desc-${projectId}`}
+                  value={description}
+                  onChange={(e) => {
+                    setDescription(e.target.value);
+                    setSaved(false);
+                  }}
+                  placeholder="What these links are for"
+                  maxLength={1000}
+                />
+              </Field>
+              <div className="flex flex-col gap-2">
+                <span className="text-sm font-medium">Color</span>
+                <ColorPicker value={colorName} onChange={(c) => setColorName(c as ColorName)} colors={COLOR_NAMES} />
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                <Button variant="danger" size="sm" onClick={handleDeleteProject} disabled={busy}>
+                  Delete project
+                </Button>
+                <div className="flex items-center gap-3">
+                  {saved && !dirty && <FormMessage tone="success">Saved</FormMessage>}
+                  <Button type="submit" variant="primary" disabled={busy || !dirty || !title.trim()}>
+                    {busy ? "Saving…" : "Save changes"}
+                  </Button>
+                </div>
+              </div>
+            </form>
+          </Section>
         </div>
       </Modal>
     </>

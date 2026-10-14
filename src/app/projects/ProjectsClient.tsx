@@ -2,10 +2,14 @@
 
 import { useMemo, useState } from "react";
 import { useFormStatus } from "react-dom";
-import TextType from "@/app/components/UI/TextType/TextType";
+import { Plus } from "lucide-react";
 import ProjectCard from "../components/ProjectCard/ProjectCard";
 import Modal from "../components/ProjectModal/ProjectModal";
 import ColorPicker from "@/app/components/UI/ColorPicker/ColorPicker";
+import PageHeader from "@/app/components/UI/PageHeader/PageHeader";
+import EmptyState from "@/app/components/UI/EmptyState/EmptyState";
+import { Button } from "@/app/components/UI/Button/Button";
+import { Field, FormMessage, Input, Textarea } from "@/app/components/UI/Field/Field";
 import { createProjectAction } from "@/app/actions/projects";
 import colorMap from "../utils/colorMap";
 import type { LinkItem } from "@/lib/services/link.service";
@@ -24,22 +28,11 @@ type Props = {
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="px-4 py-2 rounded-2xl bg-black text-white hover:bg-black/90 transition disabled:opacity-60"
-      aria-busy={pending}
-    >
-      {pending ? "Creating..." : "Create Project"}
-    </button>
+    <Button type="submit" variant="primary" disabled={pending} aria-busy={pending}>
+      {pending ? "Creating…" : "Create project"}
+    </Button>
   );
 }
-
-const addButtonClass =
-  "inline-flex items-center justify-center rounded-2xl border px-4 py-2 font-semibold transition " +
-  "hover:bg-hover-button-bg hover:text-hover-button-text hover:shadow-lg hover:-translate-y-0.5 " +
-  "active:translate-y-0 active:shadow-md focus-visible:outline-none focus-visible:ring-2 " +
-  "focus-visible:ring-black/60 focus-visible:ring-offset-2 w-full sm:w-auto";
 
 export default function ProjectsClient({ projects, links, activity }: Props) {
   const [open, setOpen] = useState(false);
@@ -67,115 +60,67 @@ export default function ProjectsClient({ projects, links, activity }: Props) {
     }
   }
 
-  return (
-    <>
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between w-full mb-10 gap-5">
-        <div className="flex flex-col">
-          <TextType
-            textColors={["text-primary-text"]}
-            text={["Projects"]}
-            typingSpeed={25}
-            pauseDuration={1500}
-            showCursor
-            cursorCharacter=""
-            className="text-4xl text-primary-text text-left"
-          />
-          <TextType
-            textColors={["text-primary-text"]}
-            text={["Organize your links into projects for better management"]}
-            typingSpeed={30}
-            pauseDuration={1500}
-            showCursor
-            cursorCharacter=""
-            className="text-start text-gray-500 mt-2"
-          />
-        </div>
+  const newProjectButton = (
+    <Button variant="accent" onClick={() => setOpen(true)}>
+      <Plus size={17} />
+      New project
+    </Button>
+  );
 
-        <button type="button" onClick={() => setOpen(true)} className={addButtonClass}>
-          + Add project
-        </button>
+  return (
+    <main className="shell pt-10 sm:pt-14">
+      <PageHeader
+        title="Projects"
+        description="Group links by campaign, client or release to see their clicks together."
+        actions={projects.length > 0 ? newProjectButton : undefined}
+      />
+
+      <div className="mt-8">
+        {projects.length === 0 ? (
+          <EmptyState title="No projects yet" action={newProjectButton}>
+            {unassigned.length > 0
+              ? `You have ${unassigned.length} unfiled ${unassigned.length === 1 ? "link" : "links"} ready to be grouped.`
+              : "Create a project, then add links to it."}
+          </EmptyState>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {projects.map((project) => (
+              <ProjectCard
+                key={project._id}
+                project={project}
+                links={byProject.get(project._id) ?? []}
+                unassignedLinks={unassigned}
+                activity={activity[project._id] ?? []}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
-      {projects.length === 0 ? (
-        <div className="w-full rounded-2xl border border-dashed p-8 text-center text-gray-500">
-          <p className="text-lg">No projects yet</p>
-          <p className="mt-1">Create your first project to start organizing links.</p>
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            className="mt-4 rounded-2xl bg-black text-white px-4 py-2 hover:bg-black/90 transition"
-          >
-            Create Project
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {projects.map((project) => (
-            <ProjectCard
-              key={project._id}
-              project={project}
-              links={byProject.get(project._id) ?? []}
-              unassignedLinks={unassigned}
-              activity={activity[project._id] ?? []}
-            />
-          ))}
-        </div>
-      )}
-
-      <Modal open={open} onClose={() => setOpen(false)} title="Create New Project">
-        <form action={onCreate} className="p-1">
-          <p className="text-gray-500">Add a new project to organize your links</p>
-
-          <div className="mt-6 space-y-5">
-            <div>
-              <label htmlFor="project-title" className="block text-sm font-semibold mb-2">
-                Project Name
-              </label>
-              <input
-                id="project-title"
-                name="title"
-                placeholder="My Awesome Project"
-                autoFocus
-                required
-                maxLength={100}
-                className="h-11 w-full rounded-2xl border px-4 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="project-description" className="block text-sm font-semibold mb-2">
-                Description
-              </label>
-              <textarea
-                id="project-description"
-                name="description"
-                placeholder="Describe your project..."
-                maxLength={1000}
-                className="min-h-[96px] max-h-[320px] w-full rounded-2xl border px-4 py-2 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2 resize-y"
-              />
-            </div>
-
-            <div>
-              <span className="block text-sm font-semibold mb-2">Project Color</span>
-              <ColorPicker value={color} onChange={(c) => setColor(c as ColorName)} colors={COLOR_NAMES} />
-              <input type="hidden" name="color" value={color} />
-            </div>
+      <Modal open={open} onClose={() => setOpen(false)} title="New project" size="md">
+        <form action={onCreate} className="flex flex-col gap-5">
+          <Field label="Name" htmlFor="project-title">
+            <Input id="project-title" name="title" placeholder="Spring launch" autoFocus required maxLength={100} />
+          </Field>
+          <Field label="Description" htmlFor="project-description" hint="Optional.">
+            <Textarea id="project-description" name="description" placeholder="What these links are for" maxLength={1000} />
+          </Field>
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium">Color</span>
+            <ColorPicker value={color} onChange={(c) => setColor(c as ColorName)} colors={COLOR_NAMES} />
+            <input type="hidden" name="color" value={color} />
           </div>
 
-          {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+          {error && <FormMessage tone="error">{error}</FormMessage>}
 
-          <div className="flex flex-col sm:flex-row justify-end gap-3 mt-8">
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="px-4 py-2 rounded-2xl border hover:bg-gray-50 dark:hover:bg-white/5 transition w-full sm:w-auto"
-            >
+          <div className="flex justify-end gap-2 border-t border-line pt-5">
+            <Button variant="ghost" onClick={() => setOpen(false)}>
               Cancel
-            </button>
+            </Button>
             <SubmitButton />
           </div>
         </form>
       </Modal>
-    </>
+    </main>
   );
 }

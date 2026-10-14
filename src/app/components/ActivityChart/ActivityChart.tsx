@@ -1,68 +1,56 @@
 "use client";
 
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-import React from "react";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 type ActivityPoint = { day: string; clicks: number };
 
-export default function ActivityChart({ data }: { data: ActivityPoint[] }) {
+function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) {
+  if (!active || !payload?.length) return null;
+  const n = payload[0].value;
   return (
-    <div className="rounded-2xl border border-gray-200 dark:border-white/10 p-5 shadow-sm bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 transition">
-      <h2 className="mb-3 text-sm font-medium text-gray-500 dark:text-gray-400">
-        Activity (Last 7 Days)
-      </h2>
+    <div className="rounded-control border border-line bg-surface px-3 py-2 text-sm shadow-overlay">
+      <span className="text-ink-soft">{label}</span>{" "}
+      <span className="font-semibold tabular-nums text-ink">
+        {n} {n === 1 ? "click" : "clicks"}
+      </span>
+    </div>
+  );
+}
 
-      <div className="h-64">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={data}
-            margin={{ top: 20, right: 25, bottom: 5, left: 0 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke="#9ca3af" strokeOpacity={0.3} />
-            <XAxis
-              dataKey="day"
-              tick={{ fill: "#6b7280", fontSize: 12 }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis
-              allowDecimals={false}
-              tick={{ fill: "#6b7280", fontSize: 12 }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "#ffffff",
-                border: "none",
-                borderRadius: "8px",
-                color: "black",
-                fontSize: "12px",
-                padding: "8px 10px",
-              }}
-              cursor={{ stroke: "#9ca3af", strokeDasharray: "3 3" }}
-            />
-            <Line
-              type="monotone"
-              dataKey="clicks"
-              stroke="currentColor"
-              strokeWidth={2.2}
-              dot={false}
-              activeDot={{ r: 5, strokeWidth: 2, stroke: "currentColor", fill: "#ffffff" }}
-              animationDuration={600}
-              animationEasing="ease-in-out"
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+/** Clicks per day as a filled area. Colors follow the theme via currentColor. */
+export default function ActivityChart({ data, height = 240 }: { data: ActivityPoint[]; height?: number }) {
+  const total = data.reduce((s, p) => s + p.clicks, 0);
+  return (
+    <div className="text-link" style={{ height }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data} margin={{ top: 8, right: 4, bottom: 0, left: -24 }} accessibilityLayer>
+          <defs>
+            <linearGradient id="clicksFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="currentColor" stopOpacity={0.22} />
+              <stop offset="100%" stopColor="currentColor" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid vertical={false} stroke="var(--line)" />
+          <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fill: "var(--ink-faint)", fontSize: 12 }} dy={6} />
+          <YAxis
+            allowDecimals={false}
+            tickLine={false}
+            axisLine={false}
+            tick={{ fill: "var(--ink-faint)", fontSize: 12 }}
+            domain={[0, total === 0 ? 4 : "auto"]}
+          />
+          <Tooltip content={<ChartTooltip />} cursor={{ stroke: "var(--line-strong)" }} />
+          <Area
+            type="monotone"
+            dataKey="clicks"
+            stroke="currentColor"
+            strokeWidth={2}
+            fill="url(#clicksFill)"
+            activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--surface)", fill: "currentColor" }}
+            animationDuration={500}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
     </div>
   );
 }

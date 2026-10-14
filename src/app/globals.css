@@ -1,206 +1,220 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-
-/* background and text color always come from var() */
-html, body {
-  min-height: 100vh;
-  background: var(--background);
-  color: var(--foreground);
-  overflow-x: hidden;
-  scrollbar-gutter: stable both-edges;
-}
-
-/* While the theme is switching, disable all transitions and lock scrolling */
-html.theming, html.theming * {
-  transition: none !important;
-}
-html.theming, html.theming body {
-  overflow-y: scroll;
-}
-
-/* focus rings must not flash the previous theme's background */
-:root, .dark {
-  --tw-ring-offset-color: var(--background);
-}
 @custom-variant dark (&:is(.dark *));
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-
-  --color-destructive: var(--destructive);
-
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-
-  --color-primary-text: var(--primary-text);
-  --color-header-basecolor: var(--header-basecolor);
-  --color-header-pillcolor: var(--header-pillcolor);
-  --color-header-hoveredpilltextcolor: var(--header-hoveredpilltextcolor);
-  --color-header-pilltextcolor: var(--header-pilltextcolor);
-  --color-hover-button-bg: var(--hover-button-bg);
-  --color-hover-button-text: var(--hover-button-text);
-  
-}
-
+/*
+ * Relinxr tokens. The palette borrows from the vocabulary of hyperlinks:
+ * "link" blue as the single accent, "visited" violet as a secondary data color,
+ * everything else cool neutral paper and ink.
+ */
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --border: oklch(0.922 0 0);
-  --primarytext: #000000;
-  --header-basecolor: #000000;
-  --header-pillcolor: #ffffff;
-  --header-hoveredpilltextcolor: #ffffff;
-  --header-pilltextcolor: #000000;
-
-  --hover-button-bg: #000000;
-  --hover-button-text: #ffffff;;
-
- 
+  --paper: #f6f7f9;
+  --surface: #ffffff;
+  --surface-sunken: #eef0f3;
+  --ink: #14161b;
+  --ink-soft: #5e6573;
+  --ink-faint: #8a91a0;
+  --line: #e2e5ea;
+  --line-strong: #c9ced7;
+  --link: #2446f5;
+  --link-hover: #1733cc;
+  --link-tint: #e8ecff;
+  --visited: #6e3fd8;
+  --danger: #c8322b;
+  --danger-tint: #fdecea;
+  --success: #1d7a46;
+  --shadow-overlay: 0 24px 60px -20px rgb(20 22 27 / 0.35);
 }
 
 .dark {
-  --background: #121212;
-  --border: #444444;
-  --primary-text: #E0E0E0;
-  --header-basecolor: #E0E0E0;
-  --header-pillcolor: #121212;
-  --header-hoveredpilltextcolor: #121212;
-  --header-pilltextcolor: #E0E0E0;
-
-  --hover-button-bg: #E0E0E0;
-  --hover-button-text: #121212;
+  --paper: #0d0f14;
+  --surface: #151821;
+  --surface-sunken: #10131a;
+  --ink: #eceef3;
+  --ink-soft: #a3a9b6;
+  --ink-faint: #737a89;
+  --line: #262a35;
+  --line-strong: #363b48;
+  --link: #8097ff;
+  --link-hover: #a1b2ff;
+  --link-tint: #1b2242;
+  --visited: #b393ff;
+  --danger: #ff7a70;
+  --danger-tint: #3a1715;
+  --success: #5fd396;
+  --shadow-overlay: 0 24px 60px -20px rgb(0 0 0 / 0.7);
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-    font-family: var(--font-main);
-  }
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-sunken: var(--surface-sunken);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-link: var(--link);
+  --color-link-hover: var(--link-hover);
+  --color-link-tint: var(--link-tint);
+  --color-visited: var(--visited);
+  --color-danger: var(--danger);
+  --color-danger-tint: var(--danger-tint);
+  --color-success: var(--success);
+
+  /* legacy names still used by a few pages */
+  --color-background: var(--paper);
+  --color-foreground: var(--ink);
+  --color-card: var(--surface);
+  --color-muted-foreground: var(--ink-soft);
+  --color-border: var(--line);
+  --color-primary-text: var(--ink);
+  --color-accent: var(--surface-sunken);
+
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  --shadow-overlay: var(--shadow-overlay);
 }
-
-
 
 @theme {
-  --breakpoint-sm: 640px;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 1024px;
-  --breakpoint-xl: 1200px; 
-  --breakpoint-2xl: 1400px; 
+  /* type scale (1.25 ratio) */
+  --text-display: 3.5rem;
+  --text-display--line-height: 1.02;
+  --text-display--letter-spacing: -0.035em;
+  --text-title: 2.25rem;
+  --text-title--line-height: 1.1;
+  --text-title--letter-spacing: -0.025em;
+
+  --radius-control: 0.625rem;
+  --radius-panel: 1rem;
+
+  --animate-link-in: link-in 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-@theme {
-  --container-padding: 1rem;      
-  --container-sm: 640px;
-  --container-md: 768px;
-  --container-lg: 1024px;
-  --container-xl: 1200px;      
-  --container-2xl: 1400px;      
-}
-
-
-.container {
-  width: 100%;
-  max-width: 100%;
-  margin-inline: auto;                 
-  padding-inline: var(--container-padding);
-}
-
-
-@media (width >= 640px)  { .container { max-width: var(--container-sm); } }
-@media (width >= 768px)  { .container { max-width: var(--container-md); } }
-@media (width >= 1024px) { .container { max-width: var(--container-lg); } }
-@media (width >= 1200px) { .container { max-width: var(--container-xl); } }
-@media (width >= 1400px) { .container { max-width: var(--container-2xl); } }
-
-
-.container-tight { padding-inline: .75rem; }
-.container-loose { padding-inline: 1.5rem; }
-
-.container-fluid {
-  width: 100%;
-  margin-inline: auto;
-  padding-inline: var(--container-padding);
-  max-width: none;
-}
-
-@supports (scrollbar-gutter: stable) {
-  html {
-    scrollbar-gutter: stable both-edges;
+@keyframes link-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+    clip-path: inset(0 100% 0 0);
   }
-}
-
-
-/* globals.css */
-img, picture, svg {
-  user-select: none;        /* not selectable */
-  -webkit-user-drag: none;  /* not draggable */
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  pointer-events: auto;     /* keep clicks working */
-}
-
-button, [role="button"], .btn {
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  to {
+    opacity: 1;
+    transform: none;
+    clip-path: inset(0 0 0 0);
+  }
 }
 
 @keyframes modalIn {
   from {
     opacity: 0;
-    transform: translateY(20px) scale(0.98);
+    transform: translateY(12px) scale(0.985);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: none;
   }
+}
+
+@layer base {
+  * {
+    @apply border-line;
+  }
+
+  html {
+    scrollbar-gutter: stable;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+    min-height: 100dvh;
+    font-size: 1rem;
+    line-height: 1.55;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display text-ink;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background: var(--link-tint);
+    color: var(--ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--link);
+    outline-offset: 2px;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--ink-faint);
+  }
+
+  /* While the theme is switching, disable transitions so nothing animates between palettes */
+  html.theming,
+  html.theming * {
+    transition: none !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 1ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 1ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* the page column every screen uses */
+  .shell {
+    width: 100%;
+    max-width: 72rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  @media (width >= 640px) {
+    .shell {
+      padding-inline: 1.5rem;
+    }
+  }
+
+  /* a short link as text: mono, link-colored, underlined like the real thing */
+  .short-link {
+    font-family: var(--font-mono);
+    color: var(--link);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+    text-decoration-color: color-mix(in oklab, var(--link) 45%, transparent);
+  }
+  .short-link:hover {
+    color: var(--link-hover);
+    text-decoration-color: currentColor;
+  }
+}
+
+img,
+svg {
+  -webkit-user-drag: none;
+}
+
+button,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }

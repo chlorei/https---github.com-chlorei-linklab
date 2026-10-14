@@ -1,31 +1,32 @@
-// app/privacy/page.tsx
+export const metadata = { title: "Privacy policy" };
+
 const COMPANY = "Relinxr GmbH";
 const CONTACT_EMAIL = "netsjapo@gmail.com";
 const REGISTERED_ADDRESS = "Hamburg, Germany";
 
 export default function PrivacyPage() {
   return (
-    <main className="min-h-dvh mt-30">
-      <div className="mx-auto max-w-6xl px-4 mt-8 md:mt-12">
+    <main className="shell pt-10 sm:pt-14">
+      <div>
         {/* Page header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-primary-text">Privacy Policy</h1>
-          <p className="mt-1 text-sm opacity-70">for Relinxr — URL shortening & analytics service</p>
-          <p className="mt-1 text-xs opacity-50">
+        <div className="mb-10 border-b border-line pb-6">
+          <h1 className="text-title font-semibold">Privacy policy</h1>
+          <p className="mt-2 text-ink-soft">What Relinxr records when someone opens a short link, and what you can do about it.</p>
+          <p className="mt-1 text-sm text-ink-faint">
             Last updated: <time dateTime="2025-10-24">October 24, 2025</time>
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-[260px_1fr]">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-[14rem_minmax(0,1fr)]">
           {/* TOC — mobile (chips) */}
-          <nav aria-label="Contents" className="md:hidden rounded-2xl border p-3">
-            <div className="text-xs font-medium opacity-80">Contents</div>
+          <nav aria-label="Contents" className="md:hidden">
+            <div className="text-sm font-medium text-ink-soft">Contents</div>
             <div className="mt-2 flex flex-wrap gap-2">
               {tocItems.map(([href, label]) => (
                 <a
                   key={href}
                   href={href}
-                  className="rounded-full border px-3 py-1 text-xs opacity-80 hover:opacity-100 transition"
+                  className="rounded-full border border-line-strong px-3 py-1 text-sm text-ink-soft hover:text-ink"
                 >
                   {label}
                 </a>
@@ -34,15 +35,15 @@ export default function PrivacyPage() {
           </nav>
 
           {/* TOC — desktop (sticky) */}
-          <aside className="sticky top-6 hidden h-fit md:block">
-            <nav aria-label="Contents" className="rounded-2xl border p-4">
-              <div className="mb-2 text-sm font-semibold opacity-80">Contents</div>
+          <aside className="sticky top-24 hidden h-fit md:block">
+            <nav aria-label="Contents">
+              <div className="mb-2 text-sm font-medium text-ink-soft">Contents</div>
               <ul className="space-y-1 text-sm">
                 {tocDesktop.map(([href, label]) => (
                   <li key={href}>
                     <a
                       href={href}
-                      className="block rounded-lg px-2 py-1 opacity-70 hover:opacity-100 hover:border transition border border-transparent hover:border"
+                      className="block border-l border-line py-1 pl-3 text-ink-soft hover:border-link hover:text-ink"
                     >
                       {label}
                     </a>
@@ -53,7 +54,7 @@ export default function PrivacyPage() {
           </aside>
 
           {/* BODY */}
-          <section className="space-y-8">
+          <section className="max-w-[68ch] space-y-10 leading-relaxed">
             <Card id="intro" title="1. Introduction">
               <p>
                 Relinxr (“<strong>we</strong>”, “<strong>us</strong>”, “<strong>our</strong>”) is a URL
@@ -70,19 +71,19 @@ export default function PrivacyPage() {
               <p>This Policy applies to our website, web app, APIs and services.</p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <h3 className="mb-1 opacity-80">Data Controller</h3>
+                  <h3 className="mb-1 text-ink-soft">Data Controller</h3>
                   <p>
                     {COMPANY} <br />
                     {REGISTERED_ADDRESS} <br />
                     Email:{" "}
-                    <a className="underline hover:opacity-100 opacity-90" href={`mailto:${CONTACT_EMAIL}`}>
+                    <a className="underline hover:opacity-100 text-ink-soft" href={`mailto:${CONTACT_EMAIL}`}>
                       {CONTACT_EMAIL}
                     </a>
                   </p>
                 </div>
                 <div>
-                  <h3 className="mb-1 opacity-80">EU/EEA Compliance</h3>
-                  <p className="opacity-90">
+                  <h3 className="mb-1 text-ink-soft">EU/EEA Compliance</h3>
+                  <p className="text-ink-soft">
                     We process personal data in accordance with the GDPR (EU) 2016/679 and applicable member-state
                     laws.
                   </p>
@@ -91,7 +92,7 @@ export default function PrivacyPage() {
             </Card>
 
             <Card id="data-we-collect" title="3. Information We Collect">
-              <h3 className="mb-1 opacity-80">(a) Information you provide</h3>
+              <h3 className="mb-1 text-ink-soft">(a) Information you provide</h3>
               <UL>
                 <li>
                   <strong>Account data</strong> (if you register): email, hashed password, display name.
@@ -104,7 +105,7 @@ export default function PrivacyPage() {
                 </li>
               </UL>
 
-              <h3 className="mt-4 mb-1 opacity-80">(b) Data collected automatically</h3>
+              <h3 className="mt-4 mb-1 text-ink-soft">(b) Data collected automatically</h3>
               <UL>
                 <li>
                   <strong>Visit events</strong> on Relinxr links: truncated/anonymized IP (e.g.,{" "}
@@ -116,14 +117,14 @@ export default function PrivacyPage() {
                 </li>
               </UL>
 
-              <h3 className="mt-4 mb-1 opacity-80">(c) Cookies and local storage</h3>
-              <p className="opacity-90">
+              <h3 className="mt-4 mb-1 text-ink-soft">(c) Cookies and local storage</h3>
+              <p className="text-ink-soft">
                 We use essential cookies/session tokens strictly to keep you signed in and secure the Service. We do
                 not use third-party advertising cookies.
               </p>
 
-              <h3 className="mt-4 mb-1 opacity-80">(d) No special categories</h3>
-              <p className="opacity-90">
+              <h3 className="mt-4 mb-1 text-ink-soft">(d) No special categories</h3>
+              <p className="text-ink-soft">
                 We do not intentionally collect sensitive categories (e.g., health, political opinions). Please do not
                 submit such data.
               </p>
@@ -141,7 +142,7 @@ export default function PrivacyPage() {
                   ["cookieConsent", "Remember consent choice", "Preference", "12 months"],
                 ]}
               />
-              <p className="mt-2 opacity-90">
+              <p className="mt-2 text-ink-soft">
                 You can clear cookies any time in your browser. Disabling essential cookies may break sign-in.
               </p>
             </Card>
@@ -221,7 +222,7 @@ export default function PrivacyPage() {
               </UL>
               <p>
                 To exercise rights, contact us at{" "}
-                <a className="underline hover:opacity-100 opacity-90" href={`mailto:${CONTACT_EMAIL}`}>
+                <a className="underline hover:opacity-100 text-ink-soft" href={`mailto:${CONTACT_EMAIL}`}>
                   {CONTACT_EMAIL}
                 </a>
                 . We may need to verify your identity.
@@ -257,7 +258,7 @@ export default function PrivacyPage() {
             <Card id="contact" title="16. Contact">
               <p>
                 Questions, requests, or complaints can be sent to:{" "}
-                <a className="underline hover:opacity-100 opacity-90" href={`mailto:${CONTACT_EMAIL}`}>
+                <a className="underline hover:opacity-100 text-ink-soft" href={`mailto:${CONTACT_EMAIL}`}>
                   {CONTACT_EMAIL}
                 </a>
                 .
@@ -274,12 +275,12 @@ export default function PrivacyPage() {
                   ["Cloudflare, Inc. (optional)", "CDN/DDoS/edge security", "Global network", "SCCs, DPA"],
                 ]}
               />
-              <p className="mt-2 text-sm opacity-70">
+              <p className="mt-2 text-sm text-ink-soft">
                 We will update this Annex when materially changing or adding sub-processors.
               </p>
             </Card>
 
-            <div className="rounded-2xl border p-4 text-sm opacity-70">
+            <div className="rounded-control bg-sunken p-4 text-sm text-ink-soft">
               © 2025 {COMPANY} — All rights reserved.
             </div>
           </section>
@@ -339,9 +340,11 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <section id={id} className="scroll-mt-24 rounded-2xl border p-5">
-      <h2 className="text-xl font-semibold text-primary-text">{title}</h2>
-      <div className="prose prose-invert mt-3 max-w-none">{children}</div>
+    <section id={id} className="scroll-mt-24">
+      <h2 className="text-xl font-semibold">{title}</h2>
+      <div className="mt-3 space-y-3 text-ink-soft [&_a]:text-link [&_a]:underline [&_li]:ml-5 [&_strong]:text-ink [&_ul]:list-disc [&_ul]:space-y-1">
+        {children}
+      </div>
     </section>
   );
 }
@@ -388,8 +391,8 @@ function Table({ head, rows }: { head: string[]; rows: string[][] }) {
 }
 
 function Th({ children }: { children: React.ReactNode }) {
-  return <th className="px-3 py-2 text-left text-xs opacity-80">{children}</th>;
+  return <th className="border-b border-line-strong px-3 py-2 text-left font-medium text-ink">{children}</th>;
 }
 function Td({ children }: { children: React.ReactNode }) {
-  return <td className="px-3 py-2 align-top">{children}</td>;
+  return <td className="border-b border-line px-3 py-2 align-top">{children}</td>;
 }

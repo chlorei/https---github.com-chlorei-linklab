@@ -4,6 +4,7 @@ import { listLinksByUser } from "@/lib/services/link.service";
 import LinksClient from "./LinksClient";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Links" };
 
 export default async function LinksPage() {
   const s = await getSession();

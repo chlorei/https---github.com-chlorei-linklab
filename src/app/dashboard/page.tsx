@@ -2,11 +2,12 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/auth";
 import { listLinksByUser } from "@/lib/services/link.service";
 import { listProjects } from "@/lib/services/project.service";
-import { countUserVisits, getUserActivity, getUserCountries, pickTopCountry } from "@/lib/services/analytics.service";
+import { countUserVisits, getUserActivity, getUserCountries } from "@/lib/services/analytics.service";
 import { getRequestTimeZone } from "@/lib/timezone";
 import DashboardClient from "./DashboardClient";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Overview" };
 
 export default async function DashboardPage() {
   const s = await getSession();
@@ -22,11 +23,11 @@ export default async function DashboardPage() {
 
   return (
     <DashboardClient
-      greetingsText={`Welcome back, ${s.name || "friend"}!`}
+      firstName={s.name.split(" ")[0] || ""}
       links={links}
-      amountVisits={visitsCount}
+      totalClicks={visitsCount}
       activity={activity}
-      topCountry={pickTopCountry(countries)}
+      countries={countries}
       projectsCount={projects.length}
     />
   );

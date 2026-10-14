@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import Image from "next/image";
 import { useFormStatus } from "react-dom";
-import TextType from "@/app/components/UI/TextType/TextType";
+import { LogOut } from "lucide-react";
 import PasswordInput from "@/app/components/PasswordInput/PasswordInput";
+import PageHeader from "@/app/components/UI/PageHeader/PageHeader";
+import { Button } from "@/app/components/UI/Button/Button";
+import { Field, FormMessage, Input } from "@/app/components/UI/Field/Field";
 import {
   changePasswordAction,
   logoutAction,
@@ -13,38 +15,31 @@ import {
 } from "@/app/actions/account";
 import type { Profile } from "@/lib/services/user.service";
 
-const inputClass =
-  "h-11 w-full rounded-2xl border px-4 outline-none transition focus:ring-2 focus:ring-black/60 focus:ring-offset-2";
-const buttonClass =
-  "rounded-2xl border px-5 py-3 font-semibold transition hover:bg-hover-button-bg hover:text-hover-button-text " +
-  "disabled:opacity-60 disabled:cursor-not-allowed";
+type Status = { kind: "ok" | "error"; text: string } | null;
 
-function SubmitBtn({ children, pendingText = "Saving..." }: { children: React.ReactNode; pendingText?: string }) {
+function SubmitBtn({ children, pendingText = "Saving…" }: { children: React.ReactNode; pendingText?: string }) {
   const { pending } = useFormStatus();
   return (
-    <button type="submit" disabled={pending} className={buttonClass}>
+    <Button type="submit" variant="primary" disabled={pending}>
       {pending ? pendingText : children}
-    </button>
+    </Button>
   );
 }
-
-type Status = { kind: "ok" | "error"; text: string } | null;
 
 function StatusLine({ status }: { status: Status }) {
   if (!status) return null;
-  return (
-    <p role="status" className={`text-sm ${status.kind === "ok" ? "text-green-600" : "text-red-500"}`}>
-      {status.text}
-    </p>
-  );
+  return <FormMessage tone={status.kind === "ok" ? "success" : "error"}>{status.text}</FormMessage>;
 }
 
-function Card({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
+/** Settings row: what it is on the left, the controls on the right. */
+function SettingsSection({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
   return (
-    <section className="flex flex-col border-2 rounded-2xl p-5">
-      <h3 className="font-bold w-full">{title}</h3>
-      <p className="text-sm w-full text-gray-500 mt-2">{subtitle}</p>
-      {children}
+    <section className="grid gap-6 border-b border-line py-10 md:grid-cols-[18rem_minmax(0,1fr)] md:gap-12">
+      <div>
+        <h2 className="text-lg font-semibold">{title}</h2>
+        <p className="mt-1.5 text-sm text-ink-soft">{description}</p>
+      </div>
+      <div className="max-w-xl">{children}</div>
     </section>
   );
 }
@@ -61,41 +56,46 @@ function ProfileForm({ profile }: { profile: Profile }) {
   async function onUpdate(formData: FormData) {
     setStatus(null);
     const res = await updateProfileAction(formData);
-    setStatus(res.ok ? { kind: "ok", text: "Profile updated" } : { kind: "error", text: res.error });
+    setStatus(res.ok ? { kind: "ok", text: "Profile saved" } : { kind: "error", text: res.error });
   }
 
   return (
-    <form action={onUpdate} className="mt-6 flex flex-col gap-5">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <input name="firstName" required maxLength={100} value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="First name" autoComplete="given-name" className={inputClass} />
-        <input name="lastName" required maxLength={100} value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Last name" autoComplete="family-name" className={inputClass} />
+    <form action={onUpdate} className="flex flex-col gap-5">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="First name" htmlFor="firstName">
+          <Input id="firstName" name="firstName" required maxLength={100} value={firstName} onChange={(e) => setFirstName(e.target.value)} autoComplete="given-name" />
+        </Field>
+        <Field label="Last name" htmlFor="lastName">
+          <Input id="lastName" name="lastName" required maxLength={100} value={lastName} onChange={(e) => setLastName(e.target.value)} autoComplete="family-name" />
+        </Field>
       </div>
-      <input name="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" autoComplete="email" className={inputClass} />
+      <Field label="Email" htmlFor="email">
+        <Input id="email" name="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
+      </Field>
 
       {emailChanged && (
-        <div>
-          <p className="mb-2 text-sm text-gray-500">Confirm with your current password to change the email.</p>
-          <PasswordInput name="currentPassword" placeholder="Current password" autoComplete="current-password" required />
-        </div>
+        <Field label="Current password" htmlFor="profile-current-password" hint="Needed to change your email.">
+          <PasswordInput id="profile-current-password" name="currentPassword" autoComplete="current-password" required />
+        </Field>
       )}
 
       <StatusLine status={status} />
 
-      <div className="flex gap-3 justify-end">
-        <button
-          type="button"
-          disabled={!dirty}
-          onClick={() => {
-            setFirstName(profile.firstName);
-            setLastName(profile.lastName);
-            setEmail(profile.email);
-            setStatus(null);
-          }}
-          className={buttonClass}
-        >
-          Cancel
-        </button>
-        <SubmitBtn>Save Changes</SubmitBtn>
+      <div className="flex gap-2">
+        <SubmitBtn>Save profile</SubmitBtn>
+        {dirty && (
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setFirstName(profile.firstName);
+              setLastName(profile.lastName);
+              setEmail(profile.email);
+              setStatus(null);
+            }}
+          >
+            Discard changes
+          </Button>
+        )}
       </div>
     </form>
   );
@@ -108,34 +108,40 @@ function PasswordForm() {
   async function onChange(formData: FormData) {
     setStatus(null);
     if (formData.get("newPassword") !== formData.get("confirmPassword")) {
-      setStatus({ kind: "error", text: "New passwords do not match" });
+      setStatus({ kind: "error", text: "The new passwords don't match." });
       return;
     }
     const res = await changePasswordAction(formData);
     if (res.ok) {
       setFormKey((k) => k + 1); // clears the fields
-      setStatus({ kind: "ok", text: "Password changed. Other devices were signed out." });
+      setStatus({ kind: "ok", text: "Password changed. Your other devices were signed out." });
     } else {
       setStatus({ kind: "error", text: res.error });
     }
   }
 
   return (
-    <form key={formKey} action={onChange} className="mt-6 flex flex-col gap-4">
-      <PasswordInput name="currentPassword" placeholder="Current password" autoComplete="current-password" required />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <PasswordInput name="newPassword" placeholder="New password" autoComplete="new-password" required minLength={8} maxLength={128} />
-        <PasswordInput name="confirmPassword" placeholder="Repeat new password" autoComplete="new-password" required minLength={8} maxLength={128} />
+    <form key={formKey} action={onChange} className="flex flex-col gap-5">
+      <Field label="Current password" htmlFor="currentPassword">
+        <PasswordInput id="currentPassword" name="currentPassword" autoComplete="current-password" required />
+      </Field>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="New password" htmlFor="newPassword" hint="At least 8 characters.">
+          <PasswordInput id="newPassword" name="newPassword" autoComplete="new-password" required minLength={8} maxLength={128} />
+        </Field>
+        <Field label="Repeat new password" htmlFor="confirmPassword">
+          <PasswordInput id="confirmPassword" name="confirmPassword" autoComplete="new-password" required minLength={8} maxLength={128} />
+        </Field>
       </div>
       <StatusLine status={status} />
-      <div className="flex justify-end">
-        <SubmitBtn pendingText="Changing...">Change password</SubmitBtn>
+      <div>
+        <SubmitBtn pendingText="Changing…">Change password</SubmitBtn>
       </div>
     </form>
   );
 }
 
-function SessionsCard() {
+function SessionsForm() {
   const [status, setStatus] = useState<Status>(null);
   const [pending, setPending] = useState(false);
 
@@ -146,59 +152,42 @@ function SessionsCard() {
     setPending(false);
     setStatus(
       res.ok
-        ? { kind: "ok", text: res.data?.count ? `Signed out ${res.data.count} other session(s).` : "No other active sessions." }
+        ? { kind: "ok", text: res.data?.count ? `Signed out ${res.data.count} other ${res.data.count === 1 ? "device" : "devices"}.` : "No other devices were signed in." }
         : { kind: "error", text: res.error }
     );
   }
 
   return (
-    <Card title="Sessions" subtitle="Lost a device or signed in somewhere public? End every session except this one.">
-      <div className="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <StatusLine status={status} />
-        <button type="button" onClick={signOutOthers} disabled={pending} className={`${buttonClass} sm:ml-auto`}>
-          {pending ? "Signing out..." : "Sign out other devices"}
-        </button>
+    <div className="flex flex-col items-start gap-4">
+      <div className="flex flex-wrap gap-2">
+        <Button onClick={signOutOthers} disabled={pending}>
+          {pending ? "Signing out…" : "Sign out other devices"}
+        </Button>
+        <form action={logoutAction}>
+          <Button type="submit" variant="ghost">
+            <LogOut size={16} />
+            Log out
+          </Button>
+        </form>
       </div>
-    </Card>
+      <StatusLine status={status} />
+    </div>
   );
 }
 
 export default function AccountClient({ profile }: { profile: Profile }) {
   return (
-    <div className="container text-primary-text mx-auto px-4 mt-40 mb-20">
-      <div className="flex justify-between flex-col md:flex-row w-full mb-10 gap-5">
-        <TextType
-          textColors={["text-primary-text"]}
-          text={["Account Settings"]}
-          typingSpeed={25}
-          pauseDuration={1500}
-          showCursor
-          cursorCharacter=""
-          className="text-4xl text-primary-text text-center md:text-left"
-        />
-
-        <form action={logoutAction}>
-          <button
-            type="submit"
-            className="flex items-center justify-center w-full sm:w-40 rounded-2xl border p-2 font-semibold
-                       bg-red-400 text-primary-text transition hover:bg-red-600 hover:text-hover-button-text hover:shadow-lg
-                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2"
-          >
-            <Image src="/icons/log-out.svg" alt="" width={22} height={22} className="mr-2" />
-            Logout
-          </button>
-        </form>
-      </div>
-
-      <div className="flex flex-col gap-6">
-        <Card title="Profile Information" subtitle="Update your profile information below">
-          <ProfileForm profile={profile} />
-        </Card>
-        <Card title="Password" subtitle="Changing the password signs out all other devices.">
-          <PasswordForm />
-        </Card>
-        <SessionsCard />
-      </div>
-    </div>
+    <main className="shell pt-10 sm:pt-14">
+      <PageHeader title="Account" description={profile.email} />
+      <SettingsSection title="Profile" description="Your name is shown on your overview page.">
+        <ProfileForm profile={profile} />
+      </SettingsSection>
+      <SettingsSection title="Password" description="Changing it signs you out everywhere except this browser.">
+        <PasswordForm />
+      </SettingsSection>
+      <SettingsSection title="Sessions" description="Lost a device or signed in on a shared computer? End those sessions here.">
+        <SessionsForm />
+      </SettingsSection>
+    </main>
   );
 }

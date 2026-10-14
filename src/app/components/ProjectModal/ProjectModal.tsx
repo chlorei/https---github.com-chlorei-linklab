@@ -1,30 +1,44 @@
 "use client";
 
 import { createPortal } from "react-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { X } from "lucide-react";
 
 type ModalProps = {
   open: boolean;
   onClose: () => void;
   title?: string;
+  /** Shown before the title, e.g. a project color dot. */
+  leading?: React.ReactNode;
+  size?: "md" | "lg";
   children: React.ReactNode;
 };
 
-export default function Modal({ open, onClose, title, children }: ModalProps) {
+export default function Modal({ open, onClose, title, leading, size = "lg", children }: ModalProps) {
   const [mounted, setMounted] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  // latest onClose without re-running the open/close effect (callers pass inline functions)
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onCloseRef.current();
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKey);
+    // move focus into the dialog unless something inside is autofocused
+    requestAnimationFrame(() => {
+      if (!dialogRef.current?.contains(document.activeElement)) dialogRef.current?.focus();
+    });
     return () => {
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = prevOverflow;
+      previouslyFocused?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!mounted || !open) return null;
 
@@ -37,33 +51,32 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
         onClose();
       }}
       onKeyDown={(e) => e.stopPropagation()}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 backdrop-blur-[2px] sm:items-center sm:p-6"
     >
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label={title}
         onClick={(e) => e.stopPropagation()}
-        className="
-          relative w-full max-w-4xl max-h-[90vh] overflow-y-auto
-          bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100
-          rounded-2xl shadow-2xl border border-gray-200 dark:border-white/10
-          p-6 sm:p-8 animate-[modalIn_0.25s_ease-out_forwards]
-        "
+        className={`relative flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-panel border border-line bg-surface text-ink shadow-overlay outline-none animate-[modalIn_0.22s_ease-out] sm:rounded-panel ${
+          size === "lg" ? "sm:max-w-3xl" : "sm:max-w-lg"
+        }`}
       >
-        <div className="flex items-start justify-between mb-4 gap-4">
-          <h2 className="text-2xl font-bold break-words">{title}</h2>
+        <div className="flex items-center gap-3 border-b border-line px-5 py-4 sm:px-6">
+          {leading}
+          <h2 className="min-w-0 flex-1 truncate text-xl font-semibold">{title}</h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-500 hover:text-gray-800 dark:text-gray-400"
+            className="grid size-9 place-items-center rounded-control text-ink-soft hover:bg-sunken hover:text-ink"
           >
-            ✕
+            <X size={18} />
           </button>
         </div>
-
-        <div>{children}</div>
+        <div className="overflow-y-auto px-5 py-5 sm:px-6">{children}</div>
       </div>
     </div>,
     document.body
